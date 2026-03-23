@@ -54,20 +54,22 @@ scripts/
   prerender.js       Engine -- renders all routes, generates sitemap + 404
   inject-brand.js    Engine -- injects brand meta into the base index.html shell
 
-src/
-  AppLayout.jsx      Template -- your routes + layout, NO BrowserRouter (critical)
-  entry-server.jsx   Template -- SSR entry, wraps AppLayout in StaticRouter
-  main.jsx           Template -- client entry, hydrateRoot or createRoot
-  hooks/
-    usePageMeta.js   Hook -- updates head tags on client-side navigation
+templates/
+  src/
+    AppLayout.jsx      Template -- your routes + layout, NO BrowserRouter (critical)
+    entry-server.jsx   Template -- SSR entry, wraps AppLayout in StaticRouter
+    main.jsx           Template -- client entry, hydrateRoot or createRoot
+    hooks/
+      usePageMeta.js   Hook -- updates head tags on client-side navigation
+  index.html           Shell template -- meta injected at build time, not hardcoded
+  ssr.config.js        Your config -- site identity, routes, JSON-LD
+  package.json         Example build script showing the three-step chain
 
 public/
   _headers           CF Pages cache + security headers (generic, edit as needed)
   _redirects         CF Pages redirect rules (SPA fallback not needed post-prerender)
 
-index.html           Shell template -- meta injected at build time, not hardcoded
-
-ssr.config.js        Your config -- site identity, routes, JSON-LD
+example/             Working app -- CF Pages root directory, builds and deploys as-is
 ```
 
 Files marked **Engine** stay identical across apps -- copy them and never edit.
@@ -77,12 +79,12 @@ Files marked **Template** need minor app-specific wiring (see Integration below)
 
 ## Integration into a new app
 
-### 1. Copy the engine scripts
+### 1. Copy the engine files
 
 ```bash
-cp scripts/prerender.js    your-app/scripts/
-cp scripts/inject-brand.js your-app/scripts/
-cp src/hooks/usePageMeta.js your-app/src/hooks/
+cp scripts/prerender.js              your-app/scripts/
+cp scripts/inject-brand.js           your-app/scripts/
+cp templates/src/hooks/usePageMeta.js your-app/src/hooks/
 ```
 
 ### 2. Create `ssr.config.js` in your project root
@@ -209,7 +211,7 @@ export default (args) => usePageMeta({ siteUrl: SITE_URL, ...args })
 
 ### 5. Replace `main.jsx`
 
-Use the provided `src/main.jsx`. Key change: `hydrateRoot` when SSR content is present,
+Use the provided `templates/src/main.jsx`. Key change: `hydrateRoot` when SSR content is present,
 `createRoot` otherwise. Without this you get FOUC on every page load.
 
 ### 6. Update `package.json`
