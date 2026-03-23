@@ -66,7 +66,7 @@ export default {
   },
 
   notFound: {
-    heading:    'Route not found.',
+    heading:    'Page not found.',
     body:       "That path doesn't exist. Head back home.",
     primaryCta: { label: 'Back to home', href: '/' },
   },
