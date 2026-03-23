@@ -1,53 +1,43 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!--
-      ALL HEAD META IS INJECTED AT BUILD TIME by scripts/inject-brand.js.
-      Source of truth: src/brand.js
+  <!--
+    Shell template. Do not add brand meta here directly.
 
-      The values below are build-time placeholders only.
-      They are replaced during `npm run build` and never appear in production.
-      Do not edit them here — edit src/brand.js instead.
-    -->
-    <title>Vibe Flow Festival</title>
-    <meta name="description" content="" />
-    <meta name="author" content="" />
-    <meta name="keywords" content="" />
-    <link rel="canonical" href="https://vibeflowfestival.com/" />
+    inject-brand.js populates these tags at build time from ssr.config.js:
+      <title>, description, author, keywords, canonical,
+      Open Graph, Twitter Card, JSON-LD.
 
-    <!-- Fonts — preconnect primes the CDN connection, stylesheet loads async -->
-    <!-- display=swap ensures text renders in fallback font immediately, no blocking -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Quicksand:wght@300;400;500&display=swap"
-      media="print" onload="this.media='all'" />
-    <noscript>
-      <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300;1,9..144,400&family=Quicksand:wght@300;400;500&display=swap" />
-    </noscript>
+    The placeholder values below give the inject regex something to match.
+    They are replaced before the site is deployed -- never served as-is.
+  -->
 
-    <!-- Theme init: runs before React to prevent flash of wrong theme -->
-    <script>
-      (function() {
-        try {
-          var stored = localStorage.getItem('vff-theme');
-          if (stored === 'dark' || stored === 'light') {
-            document.documentElement.setAttribute('data-theme', stored);
-          } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-          } else {
-            document.documentElement.setAttribute('data-theme', 'light');
-          }
-        } catch(e) {}
-      })();
-    </script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+  <!-- Primary SEO (populated by inject-brand.js) -->
+  <title>Site</title>
+  <meta name="description" content="" />
+  <meta name="keywords"    content="" />
+  <meta name="author"      content="" />
+  <meta name="robots"      content="index, follow" />
+  <link rel="canonical"    href="https://yoursite.com/" />
+
+  <!--
+    Favicons -- replace with your own.
+    Generate from https://favicon.io or similar.
+  -->
+  <!-- <link rel="icon" type="image/png" href="/favicon-32.png" sizes="32x32" /> -->
+  <!-- <link rel="apple-touch-icon" href="/apple-touch-icon.png" /> -->
+  <!-- <link rel="manifest" href="/site.webmanifest" /> -->
+
+  <!--
+    Fonts -- add your font imports here if needed.
+    Use <link rel="preconnect"> to warm the connection before the stylesheet.
+  -->
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
 </html>

@@ -1,156 +1,109 @@
-# SCOPE.md - Cloudflare SEO SSR (For React -> Vite)
+# SCOPE.md — cf-seo-ssr
 
-Project scope, current state, and the full todo list for turning this
-proof of concept into a reusable package.
-
----
-
-## Current state
-
-This is a working proof of concept extracted from a real production app
-(deployed on Cloudflare Pages). Everything in this
-repo has been debugged and deployed. The SSR pipeline works correctly.
-
-What it is NOT yet:
-- A published npm package
-- A CLI tool
-- Configurable without editing the script files directly
-- Tested against more than one app
+What this is, what it isn't, and what's left to do.
 
 ---
 
-## Scope: what this is and is not trying to be
+## What was done in v2
 
-### Is
+v1 was extracted from a production app (VFF) with app-specific strings throughout.
+v2 completes the P0 items from v1's SCOPE.md:
+
+- [x] **Config interface extracted.** All brand identity and routes live in
+  `ssr.config.js`. No app-specific strings in any engine file.
+- [x] **`brand.js` coupling removed.** `prerender.js` and `inject-brand.js` import
+  from `ssr.config.js` only.
+- [x] **`usePageMeta` decoupled.** Accepts `siteUrl` as a prop or reads from
+  `VITE_SITE_URL` env. No brand file imports.
+- [x] **Template vs engine separation documented.** Engine files (prerender, inject-brand,
+  usePageMeta) are copy-once, never-edit. Template files (AppLayout, entry-server,
+  main.jsx) need minor app-specific wiring.
+- [x] **All app-specific strings removed.** `_headers`, `_redirects`, `index.html`,
+  and all scripts are now fully generic.
+- [x] **Validated against a second app.** Creadev.org is the second production integration.
+  Several new gotchas were discovered and documented in AGENTS.md.
+
+---
+
+## What this is
+
 - A thin prerender layer for existing Vite + React + CF Pages apps
 - A set of debugged scripts + patterns you drop into a project
-- Opinionated about CF Pages specifically (cache headers, 404 handling, Pretty URLs behavior)
-- Designed to work with React Router v6 and the StaticRouter/BrowserRouter split
+- Opinionated about CF Pages specifically (cache headers, 404 handling, Pretty URLs)
+- Designed for React Router v6 with the StaticRouter/BrowserRouter split
 
-### Is not
+## What this is not
+
 - A full SSR framework (no server, no streaming, no edge runtime)
-- A competitor to Remix, Astro, or TanStack Start for complex apps
-- Suitable for apps that need per-request SSR (this is build-time prerender only)
-- CMS-aware (routes are defined statically in config, not pulled from a CMS)
+- A competitor to Remix, Astro, or TanStack Start
+- Suitable for apps needing per-request SSR (this is build-time prerender only)
+- CMS-aware out of the box (routes are static config)
 
 ---
 
-## Todo: minimum viable reusable package
+## P1 -- significantly improves usability (not yet done)
 
-These are the changes needed to go from "extracted from VFF" to
-"works cleanly in any Vite + React app":
-
-### P0 - blockers (must do before it's actually reusable)
-
-- [ ] **Extract config interface.** Replace all `brand.js` imports in
-  `prerender.js` and `inject-brand.js` with a single `ssr.config.js` that
-  the consuming app provides. Minimum shape:
-  ```js
-  export default {
-    siteUrl:       'https://yoursite.com',
-    siteName:      'Your Site',
-    author:        'Your Org',
-    ogImage:       '/og-image.jpg',
-    appLayoutPath: '/src/AppLayout.jsx',
-    routes: [
-      { path: '/', priority: '1.0', changefreq: 'weekly',
-        meta: { title: '...', description: '...' } },
-    ],
-    jsonLd: [],      // pass your own schema.org array, or omit
-    keywords: '',
-  }
-  ```
-
-- [ ] **Decouple usePageMeta from brand.js.** Change the SITE_URL import
-  to either accept it as a parameter or read from `import.meta.env.VITE_SITE_URL`.
-  Document both options.
-
-- [ ] **Template vs engine separation.** Clearly mark which files are
-  "copy once and edit" (AppLayout, entry-server, main.jsx) vs
-  "never edit" (prerender, inject-brand, usePageMeta core).
-  Consider a `create` CLI that scaffolds the template files into a new project.
-
-- [ ] **Remove all VFF-specific strings** from _headers (CSP domain references),
-  _redirects (VFF-specific routes), and index.html (VFF placeholder meta).
-  Replace with generic placeholders or generate them from config.
-
-### P1 - significantly improves usability
-
-- [ ] **CLI scaffold tool.** `npx vite-cf-ssr init` that copies the template
-  files into an existing Vite project and creates a starter `ssr.config.js`.
-  Probably 100-150 lines of Node. Makes the "drop in" story clean.
+- [ ] **CLI scaffold tool.** `npx cf-seo-ssr init` that copies the template files
+  into an existing Vite project and creates a starter `ssr.config.js`.
+  Probably 100-150 lines of Node.
 
 - [ ] **Config validation.** Check that `ssr.config.js` has all required fields
-  before running. Emit clear errors for common mistakes (missing siteUrl,
-  AppLayoutPath not found, etc).
+  before running. Emit clear errors for missing `siteUrl`, `appLayoutPath not found`, etc.
 
-- [ ] **Dynamic route support.** Currently routes are fully static. Add support
-  for a `fetchRoutes` async function in config that lets the consuming app pull
-  routes from an API or CMS at build time:
+- [ ] **Dynamic route support.** Routes are fully static. Add support for an async
+  `fetchRoutes()` function in config:
   ```js
-  export default {
-    async fetchRoutes() {
-      const posts = await fetch('https://cms.example.com/posts').then(r => r.json())
-      return posts.map(p => ({
-        path: `/blog/${p.slug}`,
-        priority: '0.7',
-        changefreq: 'monthly',
-        meta: { title: p.title, description: p.excerpt },
-      }))
-    }
+  async fetchRoutes() {
+    const posts = await fetch('https://cms.example.com/posts').then(r => r.json())
+    return posts.map(p => ({
+      path:       `/blog/${p.slug}`,
+      priority:   '0.7',
+      changefreq: 'monthly',
+      meta: { title: p.title, description: p.excerpt },
+    }))
   }
   ```
 
-- [ ] **Per-route og:image.** The current injection uses one global OG image.
-  Support `meta.ogImage` per route so blog posts, product pages etc can have
-  unique social images.
+- [ ] **Per-route `og:image`.** Currently one global OG image. Support
+  `meta.ogImage` per route so blog posts, product pages can have unique social images.
+  (The inject logic already supports `meta.ogImage` -- this is just documenting it.)
 
-- [ ] **Test against a second app.** The real proof of reusability. Pick a
-  minimal Vite + React Router v6 app and integrate the layer from scratch
-  using only the README. Fix everything that breaks.
+---
 
-### P2 - polish
+## P2 -- polish
 
-- [ ] **npm package setup.** `package.json` with `bin` pointing to the CLI,
-  `exports` for the hooks, proper `peerDependencies` (vite, react, react-router-dom).
+- [ ] **npm package setup.** `package.json` with `bin` for the CLI, `exports` for
+  the hooks, `peerDependencies` (vite, react, react-router-dom).
 
-- [ ] **GitHub Actions.** CI that runs a test build using the example app config.
+- [ ] **GitHub Actions.** CI that runs a test build using the example config.
 
-- [ ] **Example app.** A minimal `/example` directory in the repo -
-  a bare Vite + React Router app using this layer, deployable to CF Pages
-  with one click.
+- [ ] **Example app.** A minimal `/example` directory -- bare Vite + React Router
+  app using this layer, deployable to CF Pages with one command.
 
-- [ ] **Configurable 404 content.** Let the consuming app pass a custom
-  `render404(shell)` function in config, or a simple `{ heading, body }` object.
-  Currently the 404 copy is hardcoded in prerender.js.
+- [ ] **Configurable 404 content.** Let the consuming app pass a `notFound` object
+  in config with heading, body, and CTA labels. Currently hardcoded in prerender.js.
 
 - [ ] **Robots.txt generation.** Currently a static file. Could be generated
-  from config (add/remove disallow rules, inject sitemap URL automatically).
+  from config (inject sitemap URL, add/remove disallow rules automatically).
 
 ---
 
-## Decisions to make before publishing
+## Decisions made
 
-**Package name.** `vite-cf-ssr`, `vite-pages-ssr`, `cf-prerender`? Check npm
-for conflicts before committing.
+**Config format:** `ssr.config.js` (JS module). Supports functions (`buildJsonLd`,
+future `fetchRoutes`). JSON would be simpler but can't express functions.
 
-**Config file format.** `ssr.config.js` (JS module, most flexible) vs
-`ssr.config.json` (simpler but no functions). JS module wins for dynamic routes.
+**usePageMeta distribution:** Ship as a file to copy. No package import needed.
+The `siteUrl` is passed as a prop or read from env -- no coupling to app config files.
 
-**usePageMeta distribution.** Ship as a JS file to copy (like shadcn/ui's approach)
-or as an importable hook from the package? Copying is simpler and avoids the
-SITE_URL coupling problem. `npx vite-cf-ssr add usePageMeta` could handle it.
+**Vite version floor:** Vite 5. Vite 6 not yet tested.
 
-**Vite version floor.** Currently built against Vite 5. Vite 6 is out - test
-and decide whether to support both or set the floor at 5.
-
-**React version floor.** Requires React 18 for `hydrateRoot`. No plan to support 17.
+**React version floor:** React 18. `hydrateRoot` requires React 18.
 
 ---
 
-## What this does NOT need to become
+## Keeping it simple
 
-Keep this simple. The value is that it's thin and understandable - a developer
-can read the entire prerender.js in 10 minutes and know exactly what it does.
-The moment it grows into a plugin system or tries to handle every edge case,
-it loses that advantage. Astro already exists.
+The value of this library is that it's thin and readable. A developer can read
+prerender.js in 10 minutes and understand exactly what it does. If it grows into
+a plugin system that handles every edge case, it loses that. Astro already exists.

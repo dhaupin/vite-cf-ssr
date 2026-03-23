@@ -1,42 +1,24 @@
-# Cloudflare SEO SSR (For React -> Vite)
+# cf-seo-ssr
 
-A lightweight SSR prerender layer for **Vite + React + Cloudflare Pages** apps.
+A lightweight build-time prerender layer for **Vite + React + Cloudflare Pages** apps.
 
-No framework lock-in. No new build tool. Just scripts that run after `vite build`,
-render each route to static HTML, and deploy to CF Pages with correct SEO, caching,
-and hydration - all already working and debugged.
+No framework lock-in. No new build tool. Drop in three files, add a config, and your
+SPA gets fully-rendered static HTML per route -- correct SEO, correct head tags, correct
+HTTP status codes -- all already working and debugged against real CF Pages deployments.
 
-This is a **proof of concept** extracted from a production build.
-See `AGENTS.md` for the full engineering story and every hard-won decision.
+This is **build-time prerender**, not edge SSR. Every route is rendered once at deploy
+time and served as a static HTML file. CF Pages handles the rest.
 
 ---
 
 ## What it does
 
 - Prerenders all routes to static HTML at build time using Vite's `ssrLoadModule`
-- Injects per-route `<title>`, `<meta>`, Open Graph, Twitter card, and canonical tags
-- Generates `sitemap.xml` automatically from the routes config
+- Injects per-route `<title>`, `<meta>`, Open Graph, Twitter Card, and canonical tags
+- Generates `sitemap.xml` automatically from your routes config with today's date
 - Generates a `404.html` that CF Pages serves with a real HTTP 404 status
-- Writes `_redirects` rules for clean URL handling (`.html` stripping, `/home` → `/`)
-- Sets correct `Cache-Control` headers for HTML (no-cache) and assets (immutable)
-- Ships a `usePageMeta` hook that keeps all head tags in sync on client-side navigation
-- Uses `hydrateRoot` (not `createRoot`) so the SSR HTML is reused - no FOUC
-
----
-
-## How it works
-
-```
-npm run build
-  └── vite build                  # produces dist/ with hashed JS/CSS bundles
-  └── node scripts/inject-brand   # injects brand meta into dist/index.html
-  └── node scripts/prerender      # renders each route to its own dist/route/index.html
-```
-
-The prerender script spins up a Vite dev server, calls `ssrLoadModule` to load your
-`AppLayout` component, wraps it in `StaticRouter` with the target URL, renders to
-string, injects route-specific meta, and writes the HTML file. CF Pages picks it up
-as a static file and serves it with a 200 status and the correct head tags.
+- Ships a `usePageMeta` hook that keeps head tags in sync on client-side navigation
+- Uses `hydrateRoot` (not `createRoot`) so SSR HTML is reused -- no FOUC
 
 ---
 
@@ -44,9 +26,24 @@ as a static file and serves it with a 200 status and the correct head tags.
 
 - Vite 5+
 - React 18+
-- React Router v6 (BrowserRouter / StaticRouter)
+- React Router v6 (`BrowserRouter` / `StaticRouter`)
 - Cloudflare Pages
 - Node 18+ (for ESM `import()` in scripts)
+
+---
+
+## How it works
+
+```
+npm run build
+  └── vite build                   # produces dist/ with hashed JS/CSS bundles
+  └── node scripts/inject-brand    # injects brand meta into dist/index.html
+  └── node scripts/prerender       # renders each route to dist/route/index.html
+```
+
+The prerender script spins up a Vite dev server, calls `ssrLoadModule` to load your
+`AppLayout` component, wraps it in `StaticRouter` with the target path, renders to
+string, injects route-specific meta, and writes the HTML file.
 
 ---
 
@@ -54,23 +51,26 @@ as a static file and serves it with a 200 status and the correct head tags.
 
 ```
 scripts/
-  prerender.js       Engine: renders all routes, generates sitemap + 404
-  inject-brand.js    Engine: injects brand meta into the base index.html shell
+  prerender.js       Engine -- renders all routes, generates sitemap + 404
+  inject-brand.js    Engine -- injects brand meta into the base index.html shell
 
 src/
-  AppLayout.jsx      Template: routes + layout, NO BrowserRouter (critical)
-  entry-server.jsx   Template: SSR entry - wraps AppLayout in StaticRouter
-  main.jsx           Template: client entry - hydrateRoot or createRoot
-  usePageMeta.js     Hook: updates head tags on client-side navigation
+  AppLayout.jsx      Template -- your routes + layout, NO BrowserRouter (critical)
+  entry-server.jsx   Template -- SSR entry, wraps AppLayout in StaticRouter
+  main.jsx           Template -- client entry, hydrateRoot or createRoot
+  hooks/
+    usePageMeta.js   Hook -- updates head tags on client-side navigation
 
 public/
-  _redirects         CF Pages redirect rules
-  _headers           CF Pages cache + security headers
+  _headers           CF Pages cache + security headers (generic, edit as needed)
+  _redirects         CF Pages redirect rules (SPA fallback not needed post-prerender)
 
-index.html           Shell template - all meta injected at build time
+index.html           Shell template -- meta injected at build time, not hardcoded
+
+ssr.config.js        Your config -- site identity, routes, JSON-LD
 ```
 
-Files marked **Engine** stay identical across apps - no edits needed.
+Files marked **Engine** stay identical across apps -- copy them and never edit.
 Files marked **Template** need minor app-specific wiring (see Integration below).
 
 ---
@@ -82,54 +82,63 @@ Files marked **Template** need minor app-specific wiring (see Integration below)
 ```bash
 cp scripts/prerender.js    your-app/scripts/
 cp scripts/inject-brand.js your-app/scripts/
+cp src/hooks/usePageMeta.js your-app/src/hooks/
 ```
 
-### 2. Create a config file
-
-The scripts currently import from `brand.js`. For a reusable layer, extract that
-into a config contract (see TODO in SCOPE.md). For now, create `src/brand.js` in
-your app with at minimum:
+### 2. Create `ssr.config.js` in your project root
 
 ```js
-export const SITE_URL   = 'https://yoursite.com'
-export const FESTIVAL_NAME = 'Your Site Name'  // or whatever fits
-export function buildJsonLd() { return JSON.stringify([]) }
+export default {
+  siteUrl:       'https://yoursite.com',   // no trailing slash
+  siteName:      'Your Site',
+  author:        'Your Org',
+  tagline:       'Your tagline.',
+  ogImage:       'https://yoursite.com/og-image.jpg',
+  keywords:      'keyword one, keyword two',
+  appLayoutPath: '/src/AppLayout.jsx',
+
+  routes: [
+    {
+      path:       '/',
+      priority:   '1.0',
+      changefreq: 'weekly',
+      meta: {
+        title:       'Your Site | Your tagline.',
+        description: 'Homepage description.',
+      },
+    },
+    {
+      path:       '/about',
+      priority:   '0.9',
+      changefreq: 'monthly',
+      meta: {
+        title:       'About | Your Site',
+        description: 'About page description.',
+      },
+    },
+  ],
+
+  buildJsonLd() {
+    return [
+      {
+        '@context': 'https://schema.org',
+        '@type':    'Organization',
+        name:       'Your Org',
+        url:        'https://yoursite.com',
+      },
+    ]
+  },
+}
 ```
 
-### 3. Wire up the ROUTES array in prerender.js
-
-Replace the VFF-specific ROUTES array with your own:
-
-```js
-const ROUTES = [
-  {
-    path: '/',
-    priority: '1.0',
-    changefreq: 'weekly',
-    meta: {
-      title: 'Your Site - Tagline',
-      description: 'Your homepage description.',
-    },
-  },
-  {
-    path: '/about',
-    priority: '0.9',
-    changefreq: 'monthly',
-    meta: {
-      title: 'About - Your Site',
-      description: 'About your site.',
-    },
-  },
-  // ... one entry per route
-]
-```
-
-### 4. Create AppLayout.jsx (critical - read this)
+### 3. Create `AppLayout.jsx` (critical -- read this)
 
 **AppLayout must not import BrowserRouter.** This is the single most important rule.
+If BrowserRouter is anywhere in its module graph, every route prerendering as `/`.
+See AGENTS.md for the full explanation.
 
 ```jsx
-// AppLayout.jsx - NO BrowserRouter here
+// AppLayout.jsx -- NO BrowserRouter here, ever
 import { Routes, Route, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
 import Nav from './components/Nav'
@@ -139,7 +148,9 @@ import About from './pages/About'
 
 function ScrollToTop() {
   const { pathname } = useLocation()
-  useEffect(() => { window.scrollTo(0, 0) }, [pathname])
+  useEffect(() => {
+    if (typeof window !== 'undefined') window.scrollTo(0, 0)
+  }, [pathname])
   return null
 }
 
@@ -171,32 +182,37 @@ export default function App() {
 }
 ```
 
-### 5. Add usePageMeta to each page
+### 4. Use `usePageMeta` in each page
 
 ```jsx
-import usePageMeta from '../usePageMeta.js'
+import usePageMeta from '../hooks/usePageMeta.js'
 
 export default function About() {
   usePageMeta({
+    siteUrl:     'https://yoursite.com',
     path:        '/about',
-    title:       'About - Your Site',
-    description: 'About your site.',
+    title:       'About | Your Site',
+    description: 'About page description.',
   })
   // ...
 }
 ```
 
-Update `usePageMeta.js` to point at your own SITE_URL source:
+Tip: wrap it in your own thin hook to avoid repeating `siteUrl`:
 
 ```js
-// Option A: import from your brand/config file
-import { SITE_URL } from './brand.js'
-
-// Option B: read from env
-const SITE_URL = import.meta.env.VITE_SITE_URL
+// src/hooks/useMeta.js
+import usePageMeta from './usePageMeta.js'
+const SITE_URL = import.meta.env.VITE_SITE_URL || 'https://yoursite.com'
+export default (args) => usePageMeta({ siteUrl: SITE_URL, ...args })
 ```
 
-### 6. Update package.json build script
+### 5. Replace `main.jsx`
+
+Use the provided `src/main.jsx`. Key change: `hydrateRoot` when SSR content is present,
+`createRoot` otherwise. Without this you get FOUC on every page load.
+
+### 6. Update `package.json`
 
 ```json
 {
@@ -206,52 +222,85 @@ const SITE_URL = import.meta.env.VITE_SITE_URL
 }
 ```
 
-### 7. Copy public files and update for your domain
+### 7. Copy `index.html` and `public/` files
 
-`_headers` - update the CSP domain references and Access-Control-Allow-Origin.
-`_redirects` - add any app-specific redirects. The `.html` stripping rules are
-reusable as-is.
+`index.html` -- the shell template. Leave meta tags as placeholder stubs. inject-brand
+writes the real values at build time from `ssr.config.js`.
+
+`public/_headers` -- update the CSP if you have additional script/style domains.
+
+`public/_redirects` -- the SPA fallback (`/* /index.html 200`) is NOT needed once
+you're prerendering. Including it causes an infinite redirect loop on CF Pages.
 
 ---
 
-## Known gotchas (read AGENTS.md for full context)
+## SSR safety rules
 
-**BrowserRouter isolation.** If AppLayout imports BrowserRouter anywhere in its
-module tree, `ssrLoadModule` will initialize it against `window.location` (which
-defaults to `/` in Node), overriding StaticRouter's location. Every route renders
-as the homepage. Solution: AppLayout never imports BrowserRouter. App.jsx does.
+These apply to components in AppLayout's module graph (anything AppLayout imports):
 
-**react-router-dom/server.js.** Node's ESM resolver in CF Pages' build environment
-requires the explicit `.js` extension on subpath imports. Use
-`from 'react-router-dom/server.js'` not `from 'react-router-dom/server'`.
+**No `window`/`document`/`localStorage` at render time.** These don't exist in Node.
+Access them only inside `useEffect`, or guard with `typeof window !== 'undefined'`.
 
-**hydrateRoot vs createRoot.** Use `hydrateRoot` when `root.dataset.serverRendered`
-is set. This attaches React to the existing SSR DOM, eliminating FOUC. `createRoot`
-replaces the DOM, causing a visible flash as React re-renders.
+```js
+// Wrong -- runs during SSR renderToString, throws in Node
+const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark')
 
-**Inline style tags in JSX.** React 18 defers `<style>` tags in JSX to `<head>`,
-causing hydration tree mismatches. Keep all CSS in `.css` files or use inline
-`style={{}}` props - never `<style>` tags inside component JSX.
+// Correct -- typeof window guard
+const [theme, setTheme] = useState(() => {
+  if (typeof window === 'undefined') return 'dark'
+  return localStorage.getItem('theme') || 'dark'
+})
+```
 
-**Nav dark mode state.** Any component that reads `localStorage` or
-`window.matchMedia` at render time will cause an SSR/client mismatch.
-Initialize state as `false` (SSR-safe), then sync via `useEffect`.
+**No inline `<style>` tags in JSX.** React 18 handles them differently between SSR
+and client, causing hydration mismatches. Use external `.css` files or `style={{}}` props.
 
-**404 page hydration.** CF Pages serves `dist/404.html` for unmatched routes.
-If this file has `id="root"`, `main.jsx` will try to `hydrateRoot` or `createRoot`
-on it, and React will render `<Routes>` which matches nothing - blank page.
-Use `id="root-404"` and strip the React bundle `<script>` tag from `404.html`.
+**No apostrophes in single-quoted JS strings.** In string literals passed as JS values
+(e.g. in `usePageMeta` calls), apostrophes inside single-quoted strings break the parser.
+Use double quotes for any string containing a contraction.
 
-**$ in meta descriptions.** `String.replace()` treats `$1`, `$2` etc. in the
-replacement string as regex backreferences. Dollar signs in descriptions (prices
-like `$120`) corrupt the injected meta tags. Escape with
-`.replace(/\$/g, '$$$$')` before using the string as a replacement.
+```js
+// Wrong
+usePageMeta({ description: 'We're based in PA.' })
 
-**CF Pages trailing slash.** CF Pages' Pretty URLs feature serves
-`dist/about/index.html` at both `/about` and `/about/`. Do not add redirect
-rules to strip trailing slashes - they create redirect loops because CF itself
-adds the slash before your rule fires. React Router v6 matches both forms
-natively. Leave it alone.
+// Correct
+usePageMeta({ description: "We're based in PA." })
+```
+
+---
+
+## Known gotchas
+
+**BrowserRouter isolation.** If AppLayout imports BrowserRouter anywhere in its module
+tree, every route prerenders as `/`. See AGENTS.md for the full root cause analysis.
+
+**`react-router-dom/server.js`.** Node's ESM resolver on CF Pages requires the explicit
+`.js` extension. Use `from 'react-router-dom/server.js'` not `from 'react-router-dom/server'`.
+
+**CF Pages trailing slash.** Do not add redirect rules to strip trailing slashes -- they
+create infinite redirect loops with CF Pages' Pretty URLs feature. React Router v6
+matches both `/about` and `/about/` natively. Leave it alone.
+
+**`$` in meta descriptions.** `String.replace()` treats `$1`, `$2` in replacement strings
+as regex backreferences. Descriptions containing prices like `$120` corrupt injected meta.
+The prerender script escapes these automatically with `.replace(/\$/g, '$$$$')`.
+
+**404 page hydration.** `404.html` uses `id="root-404"` and has its React bundle script
+tag stripped. If it used `id="root"`, `main.jsx` would try to hydrate it, `<Routes>`
+would find no match, and the page would be blank. See AGENTS.md.
+
+---
+
+## What this is not
+
+- A full SSR framework (no server, no streaming, no edge runtime)
+- A competitor to Remix, Astro, or TanStack Start
+- Suitable for apps needing per-request SSR (this is build-time only)
+- CMS-aware out of the box (routes are defined statically in config)
+
+The value is that the entire prerender pipeline is ~200 lines of readable Node. You can
+read prerender.js in 10 minutes and know exactly what it does. When something breaks,
+you can fix it. That's the point.
 
 ---
 

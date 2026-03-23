@@ -1,39 +1,32 @@
-# AGENTS.md - Cloudflare SEO SSR (For React -> Vite)
+# AGENTS.md — cf-seo-ssr
 
 Engineering history and hard-won decisions. Written for an AI agent (or human)
-picking this work up cold. Read this before touching anything.
+picking this up cold. Read before touching anything.
 
-The context: this library was extracted from a production website build. Every 
-pattern here was debugged against real CF Pages deployments. Nothing is theoretical.
+Every pattern here was debugged against real CF Pages deployments across two
+production apps (VFF and creadev.org). Nothing is theoretical.
 
 ---
 
 ## The core architecture decision: ssrLoadModule over vite build --ssr
 
 **What we tried first:** `vite build --ssr` to produce a server bundle, then import
-that in the prerender script.
+that bundle in the prerender script.
 
-**What broke:** Every route rendered as the homepage. The SSR bundle was correct
+**What broke:** Every route rendered as the homepage. The SSR bundle looked correct
 but `StaticRouter`'s `location` prop wasn't reaching `useLocation()` inside `Routes`.
 
-**Root cause:** `vite build --ssr` and `vite build` (client) produce separate module
-instances. When the prerender script imports the SSR bundle, it gets a different
-instance of `react-router-dom` than the one the app was compiled against. The
-`StaticRouter` context from one instance can't propagate to the `Routes` hook from
-the other. They're strangers.
+**Root cause:** `vite build --ssr` and `vite build` produce separate module instances.
+When the prerender script imported the SSR bundle, it got a different instance of
+`react-router-dom` than the app was compiled against. `StaticRouter`'s context from
+one instance can't propagate to `Routes` in the other. They're strangers.
 
-**The fix:** Use `vite.createServer()` + `vite.ssrLoadModule()` instead of a
-compiled SSR bundle. `ssrLoadModule` resolves all imports through Vite's unified
-module registry - single instance of every package, StaticRouter and Routes share
-the same context object. Location propagates correctly.
+**The fix:** Use `vite.createServer()` + `vite.ssrLoadModule()`. ssrLoadModule resolves
+all imports through Vite's unified module registry -- single instance of every package,
+StaticRouter and Routes share the same context. Location propagates correctly.
 
-**The key code pattern in prerender.js:**
 ```js
-const vite = await createServer({
-  root: ROOT,
-  server: { middlewareMode: true },
-  appType: 'custom',
-})
+const vite = await createServer({ root: ROOT, server: { middlewareMode: true }, appType: 'custom' })
 const { default: AppLayout } = await vite.ssrLoadModule('/src/AppLayout.jsx')
 const appHtml = renderToString(
   React.createElement(StaticRouter, { location: route.path },
@@ -41,92 +34,76 @@ const appHtml = renderToString(
 )
 ```
 
-**Why this matters for the library:** Any future implementation must use ssrLoadModule.
-The compiled SSR bundle approach will silently produce wrong output (homepage on every
-route) with no error message.
+**Rule:** Any implementation must use ssrLoadModule. The compiled SSR bundle approach
+produces wrong output (homepage on every route) silently, with no error.
 
 ---
 
 ## The BrowserRouter isolation requirement
 
-**What broke:** After switching to ssrLoadModule, routes still all rendered as
-the homepage.
+**What broke:** After switching to ssrLoadModule, all routes still rendered as the homepage.
 
-**Root cause:** The original `App.jsx` exported both `App` (with BrowserRouter) and
-`AppLayout` (without). `ssrLoadModule('/src/App.jsx')` executed the entire module,
-including the `import { BrowserRouter } from 'react-router-dom'` at the top.
-BrowserRouter's initialization code ran immediately on import. In Node's SSR
-environment, it defaulted to `location = '/'`. This ran BEFORE StaticRouter got
-a chance to set its location. StaticRouter wrapped it, but BrowserRouter's context
-was already in the module registry as the active router.
+**Root cause:** `App.jsx` exported `AppLayout` (without BrowserRouter), but `ssrLoadModule`
+on `App.jsx` executed the entire module including `import { BrowserRouter } from 'react-router-dom'`
+at the top. BrowserRouter's initialization code ran immediately. In Node's SSR environment
+it defaulted to `location = '/'`. This ran before StaticRouter set its location context.
+StaticRouter wrapped it, but BrowserRouter's context was already live in the registry.
 
-**The fix:** Create a separate `AppLayout.jsx` file that has ZERO router imports.
-It imports only `Routes`, `Route`, `useLocation` from react-router-dom - never
-`BrowserRouter`. The router is always provided externally by the caller:
+**The fix:** Create a separate `AppLayout.jsx` that has zero router imports -- only
+`Routes`, `Route`, `useLocation`. Never `BrowserRouter`. The router is always provided
+by the caller:
 - Client: `App.jsx` wraps `<AppLayout>` in `<BrowserRouter>`
-- SSR: `entry-server.jsx` wraps `<AppLayout>` in `<StaticRouter location={url}>`
-- Prerender: `ssrLoadModule('/src/AppLayout.jsx')` - loads AppLayout directly,
-  no BrowserRouter ever touches the module graph
+- Prerender: `ssrLoadModule('/src/AppLayout.jsx')` loads AppLayout directly, no BrowserRouter
 
-**The rule for any app using this library:**
-AppLayout must be a file that, when you follow every import recursively, never
-reaches `import { BrowserRouter } from 'react-router-dom'`. If it does, all routes
-render as '/'.
+**The rule:** When you follow every import from AppLayout recursively, you must never
+reach `import { BrowserRouter }`. If you do, all routes prerender as '/'. No error
+message tells you this is happening.
 
 ---
 
-## react-router-dom/server.js - the .js extension requirement
+## react-router-dom/server.js -- the .js extension requirement
 
-**What broke:** Build failed on Cloudflare Pages with:
+**What broke:** CF Pages build failed with:
 ```
-Cannot find module '/opt/buildhome/repo/node_modules/react-router-dom/server'
+Cannot find module 'react-router-dom/server'
 Did you mean to import "react-router-dom/server.js"?
 ```
 
-**Why:** Node's ESM resolver in CF Pages' build environment (Node 22) requires
-explicit `.js` extensions on subpath imports from `node_modules`. The bare
-`'react-router-dom/server'` works in some environments but not CF Pages.
+**Why:** Node's ESM resolver on CF Pages (Node 22) requires explicit `.js` extensions
+on subpath imports from node_modules. `'react-router-dom/server'` works in some
+environments but not CF Pages.
 
-**The fix:** Always import as `'react-router-dom/server.js'` with the extension.
-This applies in both `prerender.js` (the dynamic import) and `entry-server.jsx`.
+**The fix:** Always `from 'react-router-dom/server.js'` with the extension.
 
 ---
 
-## hydrateRoot vs createRoot - why it matters for FOUC
+## hydrateRoot vs createRoot -- FOUC
 
-**createRoot** replaces the entire DOM subtree with a fresh React render.
-Even if the SSR HTML is identical to what React would render, the browser
-re-paints the entire content. On a slow connection or slow device, users see
-the styled SSR content briefly go blank, then reappear. This is the FOUC.
+**createRoot** replaces the entire DOM with a fresh React render. Even if the SSR HTML
+is identical, the browser repaints the whole content. Users see styled SSR content go
+blank, then reappear. This is the flash of unstyled content (FOUC).
 
-**hydrateRoot** attaches React's event system to the existing SSR DOM without
-replacing it. The DOM nodes stay in place. No repaint. No flash. This is the
-correct approach when you have SSR content.
+**hydrateRoot** attaches React's event system to the existing SSR DOM without replacing
+it. DOM nodes stay. No repaint. No flash.
 
-**The mismatch problem:** `hydrateRoot` requires that SSR and client render
-produce bitwise-identical HTML. Any difference throws a hydration error and React
-falls back to a full re-render (which defeats the purpose). Sources of mismatch
-found in this build:
+**The mismatch problem:** `hydrateRoot` requires identical SSR and client output. Any
+difference throws a hydration error and React falls back to a full re-render. Sources
+of mismatch found across both production integrations:
 
-1. **Dark mode state.** Nav component read `localStorage.getItem('vff-theme')`
-   at render time. SSR has no localStorage, so it returns null. Client returns
-   the stored value. Mismatch. Fix: `useState(false)` always (SSR-safe), then
-   `useEffect(() => setDark(getInitialDark()), [])` to sync after mount.
+1. **localStorage at render time.** `useState(localStorage.getItem('theme'))` throws
+   in SSR (no localStorage in Node). Fix: `typeof window === 'undefined'` guard.
 
-2. **Inline `<style>` tags in JSX.** React 18 hoists `<style>` elements from
-   JSX to `<head>` during SSR but leaves them in-tree on the client. Different
-   DOM structure = mismatch. Fix: remove all `<style>` tags from JSX. Use
-   external CSS or inline `style={{}}` props instead.
+2. **Inline `<style>` tags in JSX.** React 18 hoists `<style>` from JSX to `<head>`
+   during SSR but leaves them in-tree on client. Different DOM = mismatch.
+   Fix: external `.css` files or `style={{}}` props only.
 
-3. **`new Date().getFullYear()` in render.** If SSR runs at 11:59 PM and the
-   client loads at 12:00 AM on January 1, the year differs. Wrap in
-   `suppressHydrationWarning` on that element.
+3. **`new Date().getFullYear()` in render.** If SSR and client run across a year
+   boundary, year differs. Fix: `suppressHydrationWarning` on that element.
 
-4. **Canvas element.** Home page ember animation renders a `<canvas>` in SSR
-   (empty, correct) but populates it via useEffect on the client. React sees
-   the canvas element differently. Fix: `suppressHydrationWarning` on the canvas.
+4. **Canvas elements.** Empty on SSR, populated via useEffect on client.
+   Fix: `suppressHydrationWarning` on the canvas.
 
-**The hydrateRoot conditional in main.jsx:**
+**The conditional in main.jsx:**
 ```js
 if (root.dataset.serverRendered) {
   ReactDOM.hydrateRoot(root, <React.StrictMode><App /></React.StrictMode>)
@@ -134,175 +111,183 @@ if (root.dataset.serverRendered) {
   ReactDOM.createRoot(root).render(<React.StrictMode><App /></React.StrictMode>)
 }
 ```
-The `data-server-rendered` attribute is written by prerender.js onto the root div.
-When a user navigates to a route that has no prerendered HTML (shouldn't happen
-in a fully prerendered app, but defensive coding is good), createRoot handles it.
+`data-server-rendered` is written by prerender.js onto the root div. The else branch
+handles direct SPA navigation to routes without prerendered HTML.
 
 ---
 
 ## 404 page: why id="root-404" not id="root"
 
-**What broke:** Visiting any 404 URL showed a blank page with React errors
-#418 and #423 in the console.
+**What broke:** Visiting any 404 URL showed a blank page with React hydration errors.
 
-**Root cause:** The 404 HTML had `<div id="root">`. `main.jsx` finds `id="root"`,
-checks for `data-server-rendered` (not present, since we didn't run renderToString
-for 404), falls to `createRoot().render()`. React renders `<App>` inside
-`<BrowserRouter>`. The URL is something like `/totally-made-up-path`. React Router
-finds no matching `<Route>`. `<Routes>` renders nothing. Blank page.
+**Root cause:** `404.html` had `<div id="root">`. `main.jsx` found it, no
+`data-server-rendered` attribute, fell to `createRoot().render(<App>)`. React Router
+found no matching route for the 404 URL. `<Routes>` rendered nothing. Blank page.
 
 **The fix:**
-1. Use `<div id="root-404">` - main.jsx never touches it
-2. Strip the React bundle `<script>` tag from 404.html entirely - no JS loads
-3. The 404 page is pure static HTML. It doesn't need React.
+1. Use `<div id="root-404">` -- main.jsx never touches it
+2. Strip the React bundle `<script>` tag from 404.html -- no JS loads at all
+3. 404 is pure static HTML. It doesn't need React.
 
-```js
-html = html.replace(/<script type="module"[^>]*><\/script>/, '')
-```
-
-**CF Pages serves 404.html automatically** for any unmatched path, with a real
-HTTP 404 status. No configuration needed. Just put the file at `dist/404.html`.
+CF Pages serves `dist/404.html` automatically for unmatched routes with HTTP 404.
+No configuration needed.
 
 ---
 
-## $ in meta description strings - the regex backreference bug
+## $ in meta description strings -- the regex backreference bug
 
-**What broke:** The `/tickets` page meta description appeared as:
-```
-Weekend Camping Pass (<meta name="description" content="20), Full Day Pass...
-```
+**What broke:** Description containing `$120` rendered as garbled content with injected
+HTML fragments mid-string.
 
-**Root cause:** The description contained `$120`, `$25`, `$10` (pass prices).
-JavaScript's `String.prototype.replace()` treats `$` in the replacement string
-as a special character - `$1`, `$2` etc. are backreferences to capture groups.
-`$120` was interpreted as capture group 1 followed by literal `20`. Capture group 1
-happened to be the opening `content="` - so it got inserted mid-description.
+**Root cause:** `String.prototype.replace()` treats `$1`, `$2`, `$n` in the replacement
+string as backreferences to regex capture groups. `$120` was interpreted as capture
+group 1 (`content="`) followed by literal `20`. The opening HTML attribute got duplicated
+inside the description.
 
-**The fix:** Escape dollar signs before using a string as a replacement:
+**The fix:** Escape dollar signs before using a string as a replacement value:
 ```js
 const desc = meta.description.replace(/\$/g, '$$$$')
 ```
-Four dollar signs produces two literal dollar signs in a replace string, which
-then produces one dollar sign in the output.
+Four dollar signs in the source produces two literal dollar signs in the replacement
+string, which produces one dollar sign in the output.
 
-**This is a general gotcha** for any build script that does string injection via
-regex replace. Any user-supplied or data-driven content that might contain `$`
-needs this escape.
+**General rule:** Any user-supplied string used as the second argument to `.replace()`
+must have its `$` characters escaped. This applies to all meta fields -- title,
+description, ogImage path, anything.
 
 ---
 
-## CF Pages trailing slash redirect loop
+## CF Pages trailing slash -- don't fight it
 
-**What we tried:** Adding `_redirects` rules to strip trailing slashes:
+**What we tried:** `_redirects` rules to strip trailing slashes:
 ```
 /about/    /about    301
 ```
 
-**What broke:** Infinite redirect loop. `/about` → `/about/` → `/about` → ...
+**What broke:** Infinite redirect loop. `/about` → `/about/` (CF Pretty URLs) → `/about` → ...
 
-**Root cause:** CF Pages' "Pretty URLs" feature automatically redirects requests
-to directory-index files to the trailing slash version:
-`dist/about/index.html` → CF serves at `/about/` (with slash).
-So our rule redirected `/about/` → `/about`, then CF redirected back to `/about/`.
+**Root cause:** CF Pages' Pretty URLs feature redirects directory-index requests
+to the trailing-slash form. Our rule reversed that redirect, CF re-applied it.
 
 **The correct approach:** Do nothing. React Router v6 matches `/about/` against
-`<Route path="/about">` natively - it normalizes trailing slashes during matching.
-NavLink's `isActive` also handles both forms correctly. CF Pages can do its Pretty
-URLs thing. The canonical URL in prerender has no trailing slash, which is the
-SEO signal that matters.
+`<Route path="/about">` natively. NavLink `isActive` handles both forms. Canonical
+URL in prerender has no trailing slash. That's the SEO signal that matters.
 
-**Rule:** Only add redirect rules for paths that do NOT have a corresponding
-`dist/path/index.html`. For paths that do (i.e., all prerendered routes), let
-CF handle it.
+**Rule:** Don't add redirect rules for paths that have a `dist/path/index.html`.
+Let CF handle those. Only add rules for paths that have no prerendered file.
 
 ---
 
-## Google Fonts preload - what doesn't work
+## SPA fallback redirect -- remove it after prerendering
 
-**What we tried:** Preloading specific woff2 font files with hardcoded CDN paths:
-```html
-<link rel="preload" as="font" type="font/woff2" crossorigin
-  href="https://fonts.gstatic.com/s/fraunces/v31/6NUh8FyLNQ...woff2" />
-```
+**What broke:** CF Pages build logs showed `Infinite loop detected` warning.
 
-**What broke:** 404 errors on the preloaded files. "Preloaded but not used" warnings.
+**Root cause:** `/* /index.html 200` was the SPA fallback. Pre-prerender, it was
+necessary -- CF needed to rewrite every path to `index.html` so React Router could
+handle routing. Post-prerender, every route has its own `index.html`. The rule is
+not only unnecessary but causes a loop: CF's Pretty URLs rewrites `/about/` to
+`dist/about/index.html`, which satisfies the SPA rule, which rewrites back to
+`/index.html`, which...
 
-**Why:** Google Fonts CDN file paths include a content hash that changes when Google
-rotates their CDN. There's no public API to get the current hash. Hardcoded paths
-go stale.
-
-**The correct approach:** Use `<link rel="preconnect">` to warm the TCP/TLS
-connection to `fonts.googleapis.com` and `fonts.gstatic.com`, then load the font
-CSS asynchronously with the `media="print" onload` pattern:
-```html
-<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet"
-  href="https://fonts.googleapis.com/css2?family=..."
-  media="print" onload="this.media='all'" />
-```
-Preconnect primes the connection. The stylesheet loads without blocking render.
-Font files load as soon as the CSS is parsed, with the pre-warmed connection.
-
-If you want true zero-FOUT, self-host the font files (download them, put them in
-`public/fonts/`, reference with `@font-face` in CSS). No CDN dependencies,
-no hash rotation issues, works offline.
+**The fix:** Remove `/* /index.html 200` from `_redirects` when using prerendering.
 
 ---
 
-## usePageMeta - why all 7 tags, not just title
+## _headers wildcard rules -- CF Pages doesn't support globs
+
+**What broke:** Build logs showed:
+```
+- #17: *.js  Expected a colon-separated header pair
+- #20: *.css  Expected a colon-separated header pair
+```
+
+**Root cause:** CF Pages `_headers` route matchers only support path prefixes, not
+shell-style globs. `*.js` is not valid syntax.
+
+**The fix:** Remove `*.js` and `*.css` rules. Use `/assets/*` instead. Vite outputs
+all hashed JS and CSS to `dist/assets/`, so `/assets/*` correctly matches all
+cacheable bundles with a single rule.
+
+---
+
+## Apostrophes in single-quoted JS strings -- parser error
+
+**What broke:** CF Pages build failed with:
+```
+ERROR: Expected "}" but found "re"
+description: 'Get in touch with Creadev.org. We're based in NW Pennsylvania...'
+                                                          ^
+```
+
+**Root cause:** An apostrophe inside a single-quoted JS string literal terminates
+the string. `We're` ends the string at the apostrophe, leaving `re based...` as
+unparseable tokens.
+
+**The fix:** Use double quotes for any string value containing a contraction or
+possessive. This affects `usePageMeta` calls, `ssr.config.js` route meta, and
+any other JS string literal with an apostrophe.
+
+```js
+// Wrong
+description: 'We\'re based in NW Pennsylvania.'    // escape works but is error-prone
+description: 'We're based in NW Pennsylvania.'     // breaks
+
+// Correct
+description: "We're based in NW Pennsylvania."
+```
+
+---
+
+## usePageMeta -- why all 7 tags, not just title
 
 When a user navigates within the SPA, they stay on the same HTML document.
-The `<head>` tags from whichever route they first loaded don't update unless
-something explicitly updates them. This affects:
+Head tags from the first-loaded route don't update unless something explicitly
+updates them. This matters for:
 
-- **Browser tab title** - obvious, everyone notices
-- **canonical** - JS-enabled bots (Googlebot, Bingbot) do execute JS and
-  navigate SPAs. If canonical points to `/tickets` when they're crawling `/about`,
-  they may attribute the content to the wrong URL.
-- **og:url** - if a user shares a page after navigating to it (not the first load),
-  the social preview uses the og:url value in the DOM at share time.
-- **og:title, og:description, twitter:title, twitter:description** - same reason.
+- **Browser tab title** -- obvious
+- **canonical** -- JS-enabled bots (Googlebot, Bingbot) execute JS and navigate SPAs.
+  Wrong canonical can cause content to be attributed to the wrong URL.
+- **og:url** -- if a user shares after navigating (not the first load), the
+  social preview uses the og:url in the DOM at share time.
+- **og:title, og:description, twitter:title, twitter:description** -- same reason.
 
-Tags intentionally NOT updated per navigation: `og:image`, `og:type`, `og:locale`,
-`og:site_name`, `twitter:card`, `twitter:image`. These describe the site/brand,
-not the specific page, so they're correct on every route.
+Tags NOT updated per navigation: `og:image`, `og:type`, `og:locale`, `og:site_name`,
+`twitter:card`, `twitter:image`. These describe the site, not the specific page.
 
 ---
 
-## Stale SSR / CF Pages flooding - why it's not a problem
+## Google Fonts -- preload doesn't work
 
-**The concern:** "Won't old HTML files with old JS bundle hashes accumulate on CF?"
+**What broke:** 404 errors on preloaded font files, "preloaded but not used" warnings.
 
-**Why it's fine:**
-- Vite fingerprints all JS/CSS (`index-HASH.js`). The hash changes when content changes.
-- Prerender runs in the same pipeline, reading the freshly-written `dist/index.html`.
-- Every HTML file references the current build's asset hash. They're always in sync.
-- CF Pages only uploads files whose hash changed - `N already uploaded` in build logs.
-- HTML files have `Cache-Control: no-cache` so browsers always revalidate.
-- Old asset files stay in CF's store but are never referenced by any live HTML.
-  CF auto-cleans them over time.
-- CF Pages free tier: 500 deploys/month. Normal development uses ~200-300/month.
+**Root cause:** Google Fonts CDN paths include a content hash that rotates. There's
+no public API to get the current hash. Hardcoded paths go stale.
+
+**The correct approach:** Use `<link rel="preconnect">` to warm the connection, load
+the stylesheet normally. If you need zero-FOUT, self-host the font files.
+
+---
+
+## Stale assets -- why it's not a problem
+
+Vite fingerprints all JS/CSS (`index-HASH.js`). Prerender reads the freshly-written
+`dist/index.html` so every HTML file references the current build's hash. They're
+always in sync. CF Pages uploads only changed files. HTML has `Cache-Control: no-cache`
+so browsers always revalidate. Old asset files in CF's store are never referenced
+by live HTML. This system is self-cleaning.
 
 ---
 
 ## What was NOT explored (future work)
 
-**Streaming SSR.** `renderToString` blocks until the full component tree renders.
-For large pages this adds latency to the build. React 18's `renderToPipeableStream`
-streams HTML progressively. Not needed for build-time prerender, but relevant if
-this ever moves toward edge SSR.
+**Streaming SSR.** `renderToString` blocks until the full tree renders. React 18's
+`renderToPipeableStream` streams progressively. Not needed for build-time prerender.
 
-**Edge SSR (per-request).** This whole system is build-time prerender - every route
-is rendered once at deploy time and served as static HTML. Per-request SSR (rendering
-in a CF Worker on every request) would require a different architecture entirely.
-The ssrLoadModule approach only works at build time; it spins up a Vite dev server.
+**Edge SSR.** Per-request rendering in a CF Worker requires a different architecture.
+ssrLoadModule only works at build time (it spins up a Vite dev server).
 
-**Incremental prerender.** Currently all routes rerender on every build even if only
-one component changed. For apps with hundreds of routes, a smarter system would
-track which routes depend on which files and only rerender affected ones. Out of scope
-for a project with ~11 routes.
+**Incremental prerender.** All routes rerender on every build. For hundreds of routes,
+a smarter system would track file-to-route dependencies and only rerender affected ones.
 
-**CMS-driven routes.** Routes are currently static config. The P1 todo in SCOPE.md
-covers a `fetchRoutes()` async function to pull routes from an API at build time.
-Not implemented yet.
+**CMS-driven routes.** Routes are static config. SCOPE.md P1 covers a `fetchRoutes()`
+async function to pull routes from an API at build time.

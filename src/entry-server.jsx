@@ -1,12 +1,17 @@
 /**
- * entry-server.jsx
- * ================
+ * src/entry-server.jsx
+ * ====================
+ * TEMPLATE FILE -- copy once, minimal edits needed.
+ *
  * SSR render entry point. Used at build time by scripts/prerender.js.
  * Wraps AppLayout in StaticRouter so each route renders its own content.
  *
- * Importing AppLayout.jsx (not App.jsx) is critical — App.jsx also imports
- * BrowserRouter, which initialises with window.location and would override
- * the StaticRouter location context, causing every route to render as '/'.
+ * Importing AppLayout (not App) is critical -- App also imports BrowserRouter,
+ * which would override the StaticRouter location context. See AGENTS.md.
+ *
+ * Note: prerender.js imports AppLayout directly via ssrLoadModule and does not
+ * use this file at runtime. entry-server.jsx exists as a reference implementation
+ * and for alternative SSR setups that import a render function explicitly.
  */
 
 import React from 'react'
