@@ -50,6 +50,11 @@ const EXTRACTORS = [
     re: /<script\s+type="application\/ld\+json">([\s\S]+?)<\/script>/,
     build: (m) => `<script type="application/ld+json">\n${m[1].trim()}\n</script>`,
   },
+  {
+    // Shows the root div attribute prestruct writes -- proof hydrateRoot will fire
+    re: /<div\s+id="root"\s+data-server-rendered="([^"]+)"/,
+    build: (m) => `<div id="root" data-server-rendered="${m[1]}">`,
+  },
 ]
 
 export default function ViewSource() {

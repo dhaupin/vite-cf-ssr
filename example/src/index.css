@@ -846,6 +846,9 @@ pre code {
   background: var(--bg-2);
   border-bottom: 1px solid var(--border);
   padding: 0.45rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .cb-label {
@@ -937,3 +940,43 @@ pre code {
 .vsw .cb-pre {
   background: transparent;
 }
+
+/* ── CodeBlock copy button ───────────────────────────────────────────────── */
+.cb-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius);
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.cb-copy:hover {
+  color: var(--text-2);
+  border-color: var(--text-3);
+}
+
+.cb-copy--done {
+  color: var(--green);
+  border-color: var(--green);
+}
+
+.cb-label--lang {
+  opacity: 0.5;
+}
+
+/* ── tool-card CTA variant ───────────────────────────────────────────────── */
+.tool-card--cta {
+  border-left: 3px solid var(--accent);
+  background: var(--bg-2);
+}
+
+.tool-card--cta .tool-label { color: var(--accent); }
+.tool-card--cta .tool-arrow { color: var(--accent); }
+.tool-card--cta:hover       { background: var(--bg-1); }

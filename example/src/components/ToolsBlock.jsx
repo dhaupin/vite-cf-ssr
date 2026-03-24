@@ -1,7 +1,13 @@
+import { Link } from 'react-router-dom'
+
 /**
  * ToolsBlock.jsx
  * Links to external tools for verifying SEO, schema, and crawl status.
  * URL param is injected per-site -- change SITE_URL to match the deployed domain.
+ *
+ * 8 external tools + 1 internal CTA = 9 cards.
+ * At 3-col grid width: 3 full rows, no orphan.
+ * At 2-col: 4 rows + 1 (CTA spans to fill). At 1-col: stacked.
  */
 
 const SITE_URL = 'https://prestruct.creadev.org'
@@ -42,7 +48,7 @@ const TOOLS = [
     label: 'crawl',
     name: 'Sitemap checker',
     desc: 'Validates sitemap.xml format and checks all URLs are reachable and return 200.',
-    href: `https://nuxtseo.com/tools/xml-sitemap-validator?url=${ENC}/sitemap.xml`,
+    href: `https://www.xml-sitemaps.com/validate-xml-sitemap.html?op=validate-xml-sitemap&sitemapUrl=${ENC}/sitemap.xml`,
   },
   {
     label: 'performance',
@@ -75,6 +81,16 @@ export default function ToolsBlock() {
           <span className="tool-arrow">open tool →</span>
         </a>
       ))}
+      {/* 9th card: fills the orphan slot at 3-col width. Links to next section. */}
+      <Link to="/about" className="tool-card tool-card--cta">
+        <span className="tool-label">next</span>
+        <span className="tool-name">How it works</span>
+        <span className="tool-desc">
+          See the full build pipeline, caching strategy, and the key architectural
+          decisions behind prestruct.
+        </span>
+        <span className="tool-arrow">read more →</span>
+      </Link>
     </div>
   )
 }
