@@ -24,10 +24,8 @@ export default function Home() {
             <em>visible to search engines.</em>
           </h1>
           <p className="hero-sub fade-up delay-2">
-            Search engines crawl HTML. SPAs serve an empty shell. prestruct fixes that:
-            rendering each route to static HTML at build time with correct title,
-            description, Open Graph, schema.org, and cache headers. No framework migration,
-            no edge runtime, just a smarter build step.
+            Search engines crawl HTML. React apps serve an empty shell. Prestruct fixes that:
+            rendering each route to static HTML at build time with correct SEO meta tags, Open Graph, schema.org, and caching headers. No framework migration, no edge runtime, no bloat, just a smarter build step.
           </p>
           <div className="hero-actions fade-up delay-3">
             <Link to="/deploy" className="btn btn-primary">Get started</Link>
@@ -64,7 +62,7 @@ export default function Home() {
         <div className="container">
           <p className="section-label">The SPA SEO problem</p>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-2)', marginBottom: '1.5rem', lineHeight: 1.7 }}>
-            Single page apps (SPA) are great for humans (client side), but are basically an empty container for many crawlers/bots (server side). Prestruct solves this.
+            Single page apps (SPA) are great for humans (client side), but are basically an empty container for many crawlers/bots (server side). Prestruct solves this by rendering + caching React pages as static html.
           </p>
           <div className="compare">
             <div className="compare-row header">
