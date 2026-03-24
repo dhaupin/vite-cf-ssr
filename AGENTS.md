@@ -7,7 +7,7 @@ picking this up cold. Read before touching anything.
 comments. It covers tone, voice, formatting, naming, and what to avoid.
 
 Every pattern here was debugged against real CF Pages deployments across two
-production apps (two production apps). Nothing is theoretical.
+production apps. Nothing is theoretical.
 
 ---
 
