@@ -8,7 +8,7 @@ export default function Deploy() {
   usePageMeta({
     siteUrl:     SITE_URL,
     path:        '/deploy',
-    title:       'Deploy | prestruct',
+    title:       'Deploy | Prestruct',
     description: 'Add SEO prerendering to your Vite + React app in minutes. Copy three files, write ssr.config.js, update your build script.',
   })
 
@@ -180,7 +180,7 @@ if (root && root.dataset.serverRendered) {
               <p className="qs-label">7. Remove SPA fallback from public/_redirects</p>
               <div className="callout">
                 Remove <code>{'/* /index.html 200'}</code> if present.
-                prestruct gives every route its own HTML file. The SPA fallback creates
+                Prestruct gives every route its own HTML file. The SPA fallback creates
                 an infinite redirect loop with Cloudflare Pages' Pretty URLs feature.
               </div>
             </div>

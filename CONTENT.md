@@ -1,6 +1,6 @@
 # CONTENT.md - Language, tone, and code style reference
 
-Read this before writing copy, documentation, or code comments for prestruct.
+Read this before writing copy, documentation, or code comments for Prestruct.
 It applies to: the example site, README, AGENTS, SCOPE, code comments, and any
 content that ships in the repo.
 
@@ -25,7 +25,7 @@ Examples:
 |-------|-------|
 | "Supercharge your SEO!" | "Makes your routes crawlable." |
 | "It's incredibly easy to set up!" | "Takes about 15 minutes." |
-| "prestruct is amazing because..." | "prestruct solves X by doing Y." |
+| "Prestruct is amazing because..." | "Prestruct solves X by doing Y." |
 | "Don't worry, it's simple!" | "The only structural change is extracting AppLayout." |
 
 ---
@@ -121,3 +121,4 @@ Comment style:
 - No exclamation points unless genuinely earned or required for a warning state.
 - Sentence case on all headings and labels.
 - Limited bold and italic. Save them so they have impact.
+- Entity/asset/etc name should always be Capitalized when first in line, paragraph, sentence, headings, after meta breaks (|) or other situations where a natural capital letter seems correct. 

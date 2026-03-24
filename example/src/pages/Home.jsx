@@ -10,8 +10,8 @@ export default function Home() {
   usePageMeta({
     siteUrl:     SITE_URL,
     path:        '/',
-    title:       'prestruct | SEO prerendering for Vite + React on Cloudflare Pages',
-    description: 'Make your Vite + React app visible to search engines. prestruct prerenders each route to static HTML with correct title, description, Open Graph, schema.org, and cache headers deployed to Cloudflare Pages.',
+    title:       'Prestruct | SEO prerendering for Vite + React on Cloudflare Pages',
+    description: 'Make your Vite + React app visible to search engines. Prestruct prerenders each route to static HTML with correct title, description, Open Graph, schema.org, and cache headers deployed to Cloudflare Pages.',
   })
 
   return (
@@ -24,7 +24,7 @@ export default function Home() {
             <em>visible to search engines.</em>
           </h1>
           <p className="hero-sub fade-up delay-2">
-            Search engines crawl HTML. React apps serve an empty shell. prestruct fixes that:
+            Search engines crawl HTML. React apps serve an empty shell. Prestruct fixes that:
             rendering each route to static HTML at build time with correct SEO meta tags, Open Graph, schema.org, and caching headers. No framework migration, no edge runtime, just a smarter build step.
           </p>
           <div className="hero-actions fade-up delay-3">
@@ -62,13 +62,13 @@ export default function Home() {
         <div className="container">
           <p className="section-label">The SPA SEO problem</p>
           <p className="u-section-intro">
-            Single page apps (SPA) are great for humans (client side), but are basically an empty container for many crawlers/bots (server side). prestruct solves this by rendering + caching React pages as static html, then deploying them to their CDN.
+            Single page apps (SPA) are great for humans (client side), but are basically an empty container for many crawlers/bots (server side). Prestruct solves this by rendering + caching React pages as static html, then deploying them to their CDN.
           </p>
           <div className="compare">
             <div className="compare-row header">
               <div className="compare-cell"></div>
               <div className="compare-cell">Plain SPA</div>
-              <div className="compare-cell">SPA + prestruct</div>
+              <div className="compare-cell">SPA + Prestruct</div>
             </div>
             <div className="compare-row">
               <div className="compare-cell label">Googlebot sees</div>
@@ -141,7 +141,7 @@ export default function Home() {
             <div className="benefit">
               <p className="benefit-num">zero cost</p>
               <h3 className="benefit-title">No infrastructure change</h3>
-              <p className="benefit-desc">prestruct deploys to Cloudflare Pages as static files. No server, no edge worker, no new runtime dependencies. The tradeoff: Build time goes up by about 2 seconds for every 10 prerendered routes.</p>
+              <p className="benefit-desc">Prestruct deploys to Cloudflare Pages as static files. No server, no edge worker, no new runtime dependencies. The tradeoff: Build time goes up by about 2 seconds for every 10 prerendered routes.</p>
             </div>
           </div>
         </div>
@@ -152,7 +152,7 @@ export default function Home() {
           <p className="section-label">Verify it yourself</p>
           <p className="u-section-intro">
             Every tool below accepts a URL and reports what it finds. Use them on this site
-            or on your own, after integrating prestruct.
+            or on your own, after integrating Prestruct.
           </p>
           <ToolsBlock />
         </div>
@@ -163,8 +163,8 @@ export default function Home() {
           <p className="section-label">This site is the proof</p>
           <div className="callout u-mb-15">
             The repo running at <strong>{SITE_URL}</strong> is the same example app in
-            the <a href={GITHUB} target="_blank" rel="noopener noreferrer">prestruct GitHub repo</a>.
-            Every page you visit here was prerendered by prestruct at build time.
+            the <a href={GITHUB} target="_blank" rel="noopener noreferrer">Prestruct GitHub repo</a>.
+            Every page you visit here was prerendered by Prestruct at build time.
             The widget below fetches and parses the live HTML for the current route so you can
             see exactly what a search engine or social crawler sees.
           </div>

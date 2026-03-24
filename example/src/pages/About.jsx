@@ -8,8 +8,8 @@ export default function About() {
   usePageMeta({
     siteUrl:     SITE_URL,
     path:        '/about',
-    title:       'How it works | prestruct',
-    description: 'How prestruct prerenders Vite + React routes to static HTML. The build pipeline, caching strategy, and key architectural decisions explained.',
+    title:       'How it works | Prestruct',
+    description: 'How Prestruct prerenders Vite + React routes to static HTML. The build pipeline, caching strategy, and key architectural decisions explained.',
   })
 
   return (
@@ -19,7 +19,7 @@ export default function About() {
           <p className="page-kicker fade-up">How it works</p>
           <h1 className="page-heading fade-up delay-1">The build pipeline.</h1>
           <p className="page-sub fade-up delay-2">
-            prestruct adds two Node scripts to your existing Vite build. They run after{' '}
+            Prestruct adds two Node scripts to your existing Vite build. They run after{' '}
             <code>vite build</code>, take about 2 seconds, and leave you with a{' '}
             <code>dist/</code> that search engines can crawl.
           </p>

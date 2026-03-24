@@ -1,4 +1,4 @@
-# AGENTS.md: prestruct
+# AGENTS.md: Prestruct
 
 Engineering history and hard-won decisions. Written for an AI agent (or human)
 picking this up cold. Read before touching anything.
