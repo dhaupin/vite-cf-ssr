@@ -170,10 +170,16 @@ export default function Home() {
           </div>
           <ViewSource />
         </div>
+      </section>
+	  
+      <section className="section">
+        <div className="container">
           <div style={{ marginTop: '2rem' }}>
             <Link to="/deploy" className="btn btn-primary">Learn More</Link>
           </div>
+        </div>
       </section>
+		  
     </>
   )
 }
