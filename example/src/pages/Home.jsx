@@ -112,6 +112,9 @@ export default function Home() {
       <section className="section">
         <div className="container">
           <p className="section-label">What you gain</p>
+          <p className="u-section-intro">
+            The Prestruct engine is a purpose built tool, that delivers SEO server side rendering (for crawlers), while being completely serverless on Cloudflare Pages.
+          </p>
           <div className="benefit-grid">
             <div className="benefit">
               <p className="benefit-num">rank</p>
