@@ -1,4 +1,6 @@
-# CONTENT.md - Language, tone, and code style reference
+# CONTENT.md: Prestruct
+
+Language, content, tone, and style reference.
 
 Read this before writing copy, documentation, or code comments for Prestruct.
 It applies to: the example site, README, AGENTS, SCOPE, code comments, and any

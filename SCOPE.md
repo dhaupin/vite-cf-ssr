@@ -1,4 +1,4 @@
-# SCOPE.md: prestruct
+# SCOPE.md: Prestruct
 
 What this is, what it isn't, and what's left to do.
 
