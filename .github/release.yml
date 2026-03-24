@@ -1,0 +1,14 @@
+# GitHub release changelog categories
+# Controls how PRs are grouped in auto-generated release notes
+changelog:
+  categories:
+    - title: Breaking changes
+      labels: ['breaking']
+    - title: New features
+      labels: ['enhancement', 'feature']
+    - title: Bug fixes
+      labels: ['bug', 'fix']
+    - title: Documentation
+      labels: ['documentation', 'docs']
+    - title: Other
+      labels: ['*']

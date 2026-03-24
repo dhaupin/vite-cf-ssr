@@ -1,0 +1,67 @@
+# Creates a GitHub release when a version tag is pushed (v*.*.*)
+# The release asset contains only the engine files consumers need:
+#   scripts/inject-brand.js
+#   scripts/prerender.js
+#   templates/
+# The example/ app, docs, and public/ root are intentionally excluded.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build release archive
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          ARCHIVE="prestruct-${VERSION}.zip"
+
+          # Only ship the files integrators actually need
+          zip -r "${ARCHIVE}" \
+            scripts/inject-brand.js \
+            scripts/prerender.js \
+            templates/ \
+            README.md \
+            AGENTS.md \
+            SCOPE.md
+
+          echo "ARCHIVE=${ARCHIVE}" >> $GITHUB_ENV
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "prestruct ${{ env.VERSION }}"
+          body: |
+            ## prestruct ${{ env.VERSION }}
+
+            ### What's included in this release
+
+            | File | Purpose |
+            |------|---------|
+            | `scripts/inject-brand.js` | Engine: injects global SEO meta into dist/index.html |
+            | `scripts/prerender.js` | Engine: renders each route to static HTML |
+            | `templates/` | Templates: AppLayout, main.jsx, entry-server, usePageMeta, ssr.config |
+
+            ### Quick start
+
+            1. Copy `scripts/` and `templates/src/hooks/usePageMeta.js` into your app
+            2. Create `ssr.config.js` from `templates/ssr.config.js`
+            3. Extract `AppLayout.jsx` from your `App.jsx` (no BrowserRouter)
+            4. Update `package.json`: `"build": "vite build && node scripts/inject-brand.js && node scripts/prerender.js"`
+
+            See [README.md](README.md) for the full integration guide.
+          files: ${{ env.ARCHIVE }}
+          fail_on_unmatched_files: true
+          generate_release_notes: true

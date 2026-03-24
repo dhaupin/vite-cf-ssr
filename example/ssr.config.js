@@ -3,7 +3,7 @@ export default {
   siteName:      'prestruct',
   author:        'dhaupin',
   tagline:       'SEO prerendering for Vite + React on Cloudflare Pages',
-  ogImage:       'https://prestruct.creadev.org/og-image.png',
+  ogImage:       'https://prestruct.creadev.org/og-image.svg',
   keywords:      'vite prerender, react SEO, cloudflare pages SEO, static site generation, react SSR, vite SSR, schema.org, open graph, sitemap generator',
   appLayoutPath: '/src/AppLayout.jsx',
 
