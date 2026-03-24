@@ -210,6 +210,9 @@ const [theme, setTheme] = useState(() => {
             <a href={`${GITHUB}/blob/main/AGENTS.md`} className="btn btn-ghost" target="_blank" rel="noopener noreferrer">
               Read AGENTS.md
             </a>
+            <a href={`${GITHUB}/blob/main/SCOPE.md`} className="btn btn-ghost" target="_blank" rel="noopener noreferrer">
+              Read SCOPE.md
+            </a>
           </div>
         </div>
       </section>

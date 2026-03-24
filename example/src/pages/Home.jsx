@@ -62,7 +62,7 @@ export default function Home() {
         <div className="container">
           <p className="section-label">The SPA SEO problem</p>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-2)', marginBottom: '1.5rem', lineHeight: 1.7 }}>
-            Single page apps (SPA) are great for humans (client side), but are basically an empty container for many crawlers/bots (server side). Prestruct solves this by rendering + caching React pages as static html.
+            Single page apps (SPA) are great for humans (client side), but are basically an empty container for many crawlers/bots (server side). Prestruct solves this by rendering + caching React pages as static html, then deploying them to their CDN.
           </p>
           <div className="compare">
             <div className="compare-row header">
@@ -116,17 +116,17 @@ export default function Home() {
             <div className="benefit">
               <p className="benefit-num">rank</p>
               <h3 className="benefit-title">Crawlable content</h3>
-              <p className="benefit-desc">Every route serves full HTML to bots. No JavaScript execution required. Googlebot, Bingbot, and social crawlers see exactly what a user sees.</p>
+              <p className="benefit-desc">Every route serves full HTML to bots. No JavaScript execution required. Googlebot, Bingbot, and social crawlers see exactly what a user sees. Your words are in the code that bots see.</p>
             </div>
             <div className="benefit">
               <p className="benefit-num">CTR</p>
               <h3 className="benefit-title">Rich search previews</h3>
-              <p className="benefit-desc">Per-route title and description baked into HTML. Your search result shows the right snippet for each page, not a generic site-wide fallback.</p>
+              <p className="benefit-desc">Per-route title, description, and canonical baked into HTML. Your search result shows the right snippet for each page, not a generic site-wide fallback.</p>
             </div>
             <div className="benefit">
               <p className="benefit-num">share</p>
               <h3 className="benefit-title">Social cards that work</h3>
-              <p className="benefit-desc">og:title, og:description, og:url, og:image correct on every route. When someone shares your /pricing page, the card shows pricing content, not your homepage.</p>
+              <p className="benefit-desc">og:title, og:description, og:url, og:image correct on every route. When someone shares your /features page, the card shows features content, not just your homepage organization.</p>
             </div>
             <div className="benefit">
               <p className="benefit-num">trust</p>
@@ -141,7 +141,7 @@ export default function Home() {
             <div className="benefit">
               <p className="benefit-num">zero cost</p>
               <h3 className="benefit-title">No infrastructure change</h3>
-              <p className="benefit-desc">Still deploying to Cloudflare Pages as static files. No server, no edge worker, no new runtime dependencies. Build time goes up by about 2 seconds.</p>
+              <p className="benefit-desc">Prestruct deploys to Cloudflare Pages as static files. No server, no edge worker, no new runtime dependencies, no bloat. The tradeoff? Build time goes up by about 2 seconds for every 10 prerendered routes.</p>
             </div>
           </div>
         </div>
@@ -152,7 +152,7 @@ export default function Home() {
           <p className="section-label">Verify it yourself</p>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-2)', marginBottom: '1.5rem', lineHeight: 1.7 }}>
             Every tool below accepts a URL and reports what it finds. Use them on this site
-            or on your own after integrating prestruct.
+            or on your own, after integrating prestruct.
           </p>
           <ToolsBlock />
         </div>
@@ -170,6 +170,9 @@ export default function Home() {
           </div>
           <ViewSource />
         </div>
+          <div style={{ marginTop: '2rem' }}>
+            <Link to="/deploy" className="btn btn-primary">Learn More</Link>
+          </div>
       </section>
     </>
   )
