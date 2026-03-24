@@ -169,13 +169,8 @@ export default function Home() {
             see exactly what a search engine or social crawler sees.
           </div>
           <ViewSource />
-        </div>
-      </section>
-	  
-      <section className="section">
-        <div className="container">
           <div style={{ marginTop: '2rem' }}>
-            <Link to="/deploy" className="btn btn-primary">Learn More</Link>
+            <Link to="/about" className="btn btn-primary">Learn More</Link>
           </div>
         </div>
       </section>
