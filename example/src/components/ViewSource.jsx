@@ -2,17 +2,17 @@
  * ViewSource.jsx
  * Fetches the live prerendered HTML for the current route, extracts
  * the key head meta tags, and renders them as a structured code block.
- * Uses React elements for syntax colouring -- no dangerouslySetInnerHTML,
- * no regex fighting with already-injected spans.
+ * Uses CodeBlock with noBar=true so the copy button lives in the vsw-bar,
+ * not inside the code body area.
  */
 
 import { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
 import CodeBlock from './CodeBlock.jsx'
+import CopyButton from './CopyButton.jsx'
 
 const SITE_URL = 'https://prestruct.creadev.org'
 
-// Tags to extract from the fetched HTML, in display order
 const EXTRACTORS = [
   {
     re: /<title>([^<]+)<\/title>/,
@@ -51,7 +51,7 @@ const EXTRACTORS = [
     build: (m) => `<script type="application/ld+json">\n${m[1].trim()}\n</script>`,
   },
   {
-    // Shows the root div attribute prestruct writes -- proof hydrateRoot will fire
+    // Root div with data-server-rendered -- proof hydrateRoot will fire
     re: /<div\s+id="root"\s+data-server-rendered="([^"]+)"/,
     build: (m) => `<div id="root" data-server-rendered="${m[1]}">`,
   },
@@ -65,9 +65,7 @@ export default function ViewSource() {
   useEffect(() => {
     setCode(null)
     setError(false)
-
     const url = `${SITE_URL}${pathname === '/' ? '' : pathname}`
-
     fetch(url)
       .then(r => { if (!r.ok) throw new Error(r.status); return r.text() })
       .then(html => {
@@ -88,6 +86,7 @@ export default function ViewSource() {
       <div className="vsw-bar">
         <span className="vsw-title">live head tags</span>
         <span className="vsw-route">{SITE_URL}{routeLabel}</span>
+        {code && <CopyButton text={code} />}
       </div>
       <div className="vsw-body">
         {!code && !error && <p className="vsw-loading">fetching...</p>}
@@ -96,7 +95,7 @@ export default function ViewSource() {
             Could not fetch. View source directly: view-source:{SITE_URL}{routeLabel}
           </p>
         )}
-        {code && <CodeBlock lang="html">{code}</CodeBlock>}
+        {code && <CodeBlock lang="html" noBar>{code}</CodeBlock>}
       </div>
     </div>
   )

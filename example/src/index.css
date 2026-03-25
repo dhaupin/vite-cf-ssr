@@ -642,13 +642,26 @@ pre code {
 /* ── Benefit grid ─────────────────────────────────────────────────────────── */
 .benefit-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: 1fr;
   gap: 1px;
   background: var(--border);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
   margin-top: 0;
+}
+
+@media (min-width: 540px) {
+  .benefit-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 860px) {
+  .benefit-grid {
+    /* 6 items at 3 cols = 2 full rows, no orphan */
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 .benefit {
@@ -783,12 +796,30 @@ pre code {
 /* ── Tools checker block ──────────────────────────────────────────────────── */
 .tools-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: 1fr;
   gap: 1px;
   background: var(--border);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
+}
+
+@media (min-width: 540px) {
+  .tools-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 780px) {
+  .tools-grid {
+    /* 9 items at 3 cols = 3 full rows, no orphan */
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* CTA card: if it ends up as the only item in its row at 2-col, span full width */
+.tool-card--cta:nth-child(2n+1):last-child {
+  grid-column: 1 / -1;
 }
 
 .tool-card {
