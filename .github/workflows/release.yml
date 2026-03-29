@@ -54,10 +54,10 @@ jobs:
             | `init/scripts/prerender.js` | Renders each route to static HTML, generates sitemap + 404 |
             | `init/src/hooks/usePageMeta.js` | Keeps head tags in sync on client-side navigation |
             | `init/ssr.config.js` | Starter config template: routes, meta, JSON-LD |
-            | `init/AppLayout.jsx` | Template: routes + layout, no BrowserRouter |
-            | `init/main.jsx` | Template: hydrateRoot/createRoot conditional |
-            | `init/entry-server.jsx` | Template: SSR entry point |
+            | `init/src/AppLayout.jsx` | Template: routes + layout, no BrowserRouter |
             | `init/index.html` | Shell template: meta injected at build time |
+            | `init/public/_redirects` | 301 redirects created at build time |
+            | `init/public/_headers | Cache control headers for build and CDN assets |
 
             ### Quick start
 
@@ -70,7 +70,6 @@ jobs:
             # 2. Copy starter templates
             cp init/ssr.config.js    your-app/ssr.config.js
             cp init/AppLayout.jsx    your-app/src/AppLayout.jsx
-            cp init/main.jsx         your-app/src/main.jsx
             cp init/index.html       your-app/index.html
             ```
 
