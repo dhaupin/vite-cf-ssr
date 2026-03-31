@@ -48,7 +48,7 @@ const TOOLS = [
     label: 'crawl',
     name: 'Sitemap checker',
     desc: 'Validates sitemap.xml format and checks all URLs are reachable and return 200.',
-    href: `https://www.xml-sitemaps.com/validate-xml-sitemap.html?op=validate-xml-sitemap&sitemapUrl=${ENC}/sitemap.xml`,
+    href: `https://nuxtseo.com/tools/xml-sitemap-validator?url=${ENC}/sitemap.xml`,
   },
   {
     label: 'performance',

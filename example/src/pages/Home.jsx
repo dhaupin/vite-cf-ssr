@@ -25,7 +25,7 @@ export default function Home() {
           </h1>
           <p className="hero-sub fade-up delay-2">
             Search engines crawl HTML. React apps serve an empty shell. Prestruct fixes that:
-            rendering each route to static HTML at build time with correct SEO meta tags, Open Graph, schema.org, and caching headers. No framework migration, no edge runtime, just a smarter build step.
+            rendering each route to static HTML at build time with correct SEO meta tags, Open Graph, schema.org, and caching headers. No framework migration, no edge runtime, just a smarter Cloudflare build step.
           </p>
           <div className="hero-actions fade-up delay-3">
             <Link to="/deploy" className="btn btn-primary">Get started</Link>
@@ -62,7 +62,7 @@ export default function Home() {
         <div className="container">
           <p className="section-label">The SPA SEO problem</p>
           <p className="u-section-intro">
-            Single page apps (SPA) are great for humans (client side), but are basically an empty container for many crawlers/bots (server side). Prestruct solves this by rendering + caching React pages as static html, then deploying them to their CDN.
+            Single page apps (SPA) are great for humans (client side), but are basically an empty container for many crawlers/bots (server side). Prestruct solves this by rendering + caching React pages as static html, then deploying them to the Cloudflare CDN.
           </p>
           <div className="compare">
             <div className="compare-row header">
@@ -119,7 +119,7 @@ export default function Home() {
             <div className="benefit">
               <p className="benefit-num">rank</p>
               <h3 className="benefit-title">Crawlable content</h3>
-              <p className="benefit-desc">Every route serves full HTML to bots. No JavaScript execution required. Googlebot, Bingbot, and social crawlers see exactly what a user sees. Your words are in the code that bots see.</p>
+              <p className="benefit-desc">Every route serves full HTML to bots. No JavaScript execution required. Googlebot, Bingbot, and social crawlers see exactly what a user sees. Your words are in the code that SEO crawlers see.</p>
             </div>
             <div className="benefit">
               <p className="benefit-num">CTR</p>
