@@ -7,11 +7,16 @@
  * the main app hydrates. Each island is a hole punched through the
  * prerendered HTML: invisible to crawlers, filled for human visitors.
  *
- * Usage -- call mountIslands() in main.jsx after hydrateRoot/createRoot:
+ * Usage -- call mountIslands() in AppLayout's route-change effect after each
+ * navigation. This ensures islands mount on both hard loads and SPA transitions.
+ * The WeakSet prevents double-mounting if the same element is scanned twice.
  *
  *   import { mountIslands } from './islands.js'
  *   import { islands } from './AppIslands.jsx'
- *   mountIslands(islands)
+ *
+ *   // Inside ScrollToTop's useEffect([pathname]):
+ *   const t = setTimeout(() => mountIslands(islands), 0)
+ *   return () => clearTimeout(t)
  *
  * Islands are declared in src/AppIslands.jsx as a name -> component map.
  * Each island in the HTML is a <pre-island> custom element:
@@ -74,10 +79,14 @@ function observe(el, Component) {
 function whenIdle(el, Component) {
   if (mounted.has(el)) return
   if ('requestIdleCallback' in window) {
-    requestIdleCallback(() => mount(el, Component), { timeout: 2000 })
+    requestIdleCallback(() => {
+      // Guard against the element being removed from the DOM before the
+      // callback fires (e.g. user navigated away within the idle window).
+      if (el.isConnected) mount(el, Component)
+    }, { timeout: 2000 })
   } else {
     // requestIdleCallback not available -- fall back to a short timeout
-    setTimeout(() => mount(el, Component), 200)
+    setTimeout(() => { if (el.isConnected) mount(el, Component) }, 200)
   }
 }
 

@@ -84,8 +84,8 @@ v2 completes the P0 items from v1's SCOPE.md:
 - [x] **Example app.** The `/example` directory is the live reference app at prestruct.creadev.org. It auto-syncs
   from `init/` on each tagged release via GitHub Actions.
 
-- [ ] **Configurable 404 content.** Let the consuming app pass a `notFound` object
-  in config with heading, body, and CTA labels. Currently hardcoded in prerender.js.
+- [x] **Configurable 404 content.** Pass a `notFound` object in `ssr.config.js`
+  with `heading`, `body`, and `primaryCta: { label, href }`. Implemented in prerender.js.
 
 - [ ] **Robots.txt generation.** Currently a static file. Could be generated
   from config (inject sitemap URL, add/remove disallow rules automatically).

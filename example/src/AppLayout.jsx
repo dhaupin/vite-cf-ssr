@@ -4,7 +4,7 @@
  */
 
 import { Routes, Route, useLocation, NavLink, Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import Home     from './pages/Home.jsx'
 import About    from './pages/About.jsx'
 import Deploy      from './pages/Deploy.jsx'
@@ -58,11 +58,24 @@ function GitHubIcon() {
 export default function AppLayout() {
   const [menuOpen, setMenuOpen] = useState(false)
   const closeMenu = () => setMenuOpen(false)
+  const headerRef = useRef(null)
+
+  // Close menu when tapping outside the header
+  useEffect(() => {
+    if (!menuOpen) return
+    const handler = (e) => {
+      if (headerRef.current && !headerRef.current.contains(e.target)) {
+        closeMenu()
+      }
+    }
+    document.addEventListener('pointerdown', handler)
+    return () => document.removeEventListener('pointerdown', handler)
+  }, [menuOpen])
 
   return (
     <div className="app">
       <ScrollToTop onNav={closeMenu} />
-      <header className="site-header">
+      <header className="site-header" ref={headerRef}>
         <Link to="/" className="header-wordmark">
           <span className="wordmark-bracket">[</span>pre<span className="wordmark-accent">struct</span><span className="wordmark-bracket">]</span>
         </Link>

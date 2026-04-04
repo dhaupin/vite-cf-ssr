@@ -451,7 +451,8 @@ pre code {
   gap: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  overflow: hidden;
+  /* No overflow:hidden -- it clips the horizontal scrollbar on <pre> blocks
+     inside .step-body. Border-radius is preserved by the border itself. */
 }
 
 .step {
@@ -786,7 +787,7 @@ pre code {
 }
 
 .compare-cell.good  { color: var(--accent-dim); }
-.compare-cell.bad   { color: var(--text-2); opacity: 0.6; }
+.compare-cell.bad   { color: var(--text-2); opacity: 0.6; } /* .label rule below wins on label cells -- intentional */
 .compare-cell.label { color: var(--text); font-weight: 500; }
 
 /* ── Scrollbars ──────────────────────────────────────────────────────────────── */
