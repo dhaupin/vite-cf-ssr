@@ -35,6 +35,15 @@ export default {
         description: 'Add SEO prerendering to your Vite + React app in minutes. Copy three files, write ssr.config.js, update your build script.',
       },
     },
+    {
+      path:       '/islands',
+      priority:   '0.8',
+      changefreq: 'monthly',
+      meta: {
+        title:       'Dynamic islands | Prestruct',
+        description: 'Punch holes through prerendered HTML for client-only content. Cart widgets, recently viewed, personalization -- served to humans, invisible to crawlers.',
+      },
+    },
   ],
 
   buildJsonLd() {

@@ -25,7 +25,7 @@ export default function Home() {
           </h1>
           <p className="hero-sub fade-up delay-2">
             Search engines crawl HTML. React apps serve an empty shell. Prestruct fixes that:
-            rendering each route to static HTML at build time with correct SEO meta tags, Open Graph, schema.org, and caching headers. No framework migration, no edge runtime, just a smarter Cloudflare build step.
+            rendering each route to static HTML at build time with correct SEO meta tags, Open Graph, schema.org, and caching headers. No framework migration, no edge runtime, just a smarter build step.
           </p>
           <div className="hero-actions fade-up delay-3">
             <Link to="/deploy" className="btn btn-primary">Get started</Link>
@@ -62,7 +62,7 @@ export default function Home() {
         <div className="container">
           <p className="section-label">The SPA SEO problem</p>
           <p className="u-section-intro">
-            Single page apps (SPA) are great for humans (client side), but are basically an empty container for many crawlers/bots (server side). Prestruct solves this by rendering + caching React pages as static html, then deploying them to the Cloudflare CDN.
+            Single page apps (SPA) are great for humans (client side), but are basically an empty container for many crawlers/bots (server side). Prestruct solves this by rendering + caching React pages as static html, then deploying them to their CDN.
           </p>
           <div className="compare">
             <div className="compare-row header">
@@ -119,7 +119,7 @@ export default function Home() {
             <div className="benefit">
               <p className="benefit-num">rank</p>
               <h3 className="benefit-title">Crawlable content</h3>
-              <p className="benefit-desc">Every route serves full HTML to bots. No JavaScript execution required. Googlebot, Bingbot, and social crawlers see exactly what a user sees. Your words are in the code that SEO crawlers see.</p>
+              <p className="benefit-desc">Every route serves full HTML to bots. No JavaScript execution required. Googlebot, Bingbot, and social crawlers see exactly what a user sees. Your words are in the code that bots see.</p>
             </div>
             <div className="benefit">
               <p className="benefit-num">CTR</p>
@@ -161,6 +161,47 @@ export default function Home() {
         </div>
       </section>
 	  
+      <section className="section">
+        <div className="container">
+          <p className="section-label">Dynamic islands</p>
+          <p className="u-section-intro">
+            Prerendered HTML is the same for every visitor. Islands punch holes through it
+            for content that isn't: cart state, recently viewed items, logged-in user
+            widgets. Each island mounts its own React root after hydration. Crawlers see
+            a fallback. Humans see live data.
+          </p>
+          <div className="feature-grid">
+            <div className="feature">
+              <p className="feature-icon">eager</p>
+              <h3 className="feature-title">Immediate</h3>
+              <p className="feature-desc">
+                Mounts right after hydration. For above-the-fold widgets that need to be
+                interactive as soon as possible.
+              </p>
+            </div>
+            <div className="feature">
+              <p className="feature-icon">visible</p>
+              <h3 className="feature-title">On scroll</h3>
+              <p className="feature-desc">
+                Mounts via <code>IntersectionObserver</code> when the element enters the
+                viewport. Nothing loads until the user reaches it.
+              </p>
+            </div>
+            <div className="feature">
+              <p className="feature-icon">idle</p>
+              <h3 className="feature-title">Background</h3>
+              <p className="feature-desc">
+                Mounts via <code>requestIdleCallback</code> during browser downtime.
+                No competition with paint or interaction.
+              </p>
+            </div>
+          </div>
+          <div className="u-mt-2">
+            <Link to="/islands" className="btn btn-primary">See islands in action</Link>
+          </div>
+        </div>
+      </section>
+
       <section className="section">
         <div className="container">
           <p className="section-label">This site is the proof</p>

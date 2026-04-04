@@ -283,6 +283,49 @@ by live HTML. This system is self-cleaning.
 
 ---
 
+## Dynamic islands: client-only content in prerendered pages
+
+**The problem:** Prerendered HTML is static. User-specific content -- recently viewed
+products, cart widgets, personalization banners -- can't be in the static HTML because
+it's the same for every visitor. Putting it there would also expose it to crawlers.
+
+**The pattern:** Punch holes through the prerendered HTML using `<pre-island>` custom
+elements. The static HTML ships with the placeholder (and optional fallback content).
+After the app hydrates, `mountIslands()` scans for these elements and mounts a React
+component into each one using its own `createRoot`.
+
+**Why a custom element, not a div:**
+`<pre-island>` is semantically distinct from layout divs. It survives `renderToString`
+unchanged -- React passes unknown elements through as plain HTML. It's also queryable
+with a single targeted selector (`pre-island[data-pre-island]`) without class conflicts.
+
+**SSR behavior:**
+`renderToString` sees `<pre-island>` as an unknown HTML element and emits it as-is.
+Any fallback content inside renders into the static HTML and is visible to crawlers.
+The island component itself never runs at build time -- only in the browser.
+
+**Why islands are independent of the React tree:**
+`mountIslands()` calls `ReactDOM.createRoot(el).render(...)` directly on each
+`<pre-island>` element. This creates a separate React root per island, outside the
+main `hydrateRoot` tree. This is intentional: islands don't participate in hydration,
+they don't need to match SSR output, and they can't cause hydration mismatches.
+
+**Load strategies:**
+The `data-pre-load` attribute controls when each island mounts:
+- `eager` (default) -- immediately after `mountIslands()` is called
+- `visible` -- via `IntersectionObserver` when the element enters the viewport
+- `idle` -- via `requestIdleCallback` (falls back to `setTimeout(200)`)
+
+**What islands can't do:**
+- Receive props from the React tree (they're separate roots)
+- Access React context from the parent app
+- Be indexed by crawlers (fallback content is what crawlers see)
+- Run at SSR time
+
+For indexed dynamic content, prerender it into a separate route instead.
+
+---
+
 ## What was NOT explored (future work)
 
 **Streaming SSR.** `renderToString` blocks until the full tree renders. React 18's

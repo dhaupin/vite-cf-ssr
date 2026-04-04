@@ -22,6 +22,7 @@ https://prestruct.creadev.org
 - Generates a `404.html` that CF Pages serves with a real HTTP 404 status
 - Ships a `usePageMeta` hook that keeps head tags in sync on client-side navigation
 - Uses `hydrateRoot` (not `createRoot`) so SSR HTML is reused, no FOUC
+- Supports dynamic islands via `<pre-island>` for client-only content that bypasses the static cache
 
 ---
 
@@ -59,8 +60,10 @@ init/                       Release source of truth. Tagged and zipped by CI.
     prerender.js            Engine: renders each route to static HTML
   src/
     App.jsx                 Template: BrowserRouter wrapper, client entry point
+    AppIslands.jsx          Template: island registry, map names to components
     AppLayout.jsx           Template: routes + layout, NO BrowserRouter (critical)
-    main.jsx                Template: client entry, hydrateRoot or createRoot
+    main.jsx                Template: client entry, hydrateRoot + mountIslands
+    islands.js              Engine: mounts island components into <pre-island> elements
     hooks/
       usePageMeta.js        Hook: keeps head tags in sync on client-side navigation
   public/
@@ -216,8 +219,9 @@ export default (args) => usePageMeta({ siteUrl: SITE_URL, ...args })
 
 ### 5. Update `main.jsx`
 
-The release includes `src/main.jsx`. The key detail: it uses `hydrateRoot` when SSR
-content is present, `createRoot` otherwise. Without this you get FOUC on every page load.
+The release includes `src/main.jsx`. It handles two things: `hydrateRoot` when SSR
+content is present (`createRoot` otherwise), and calling `mountIslands()` after the
+app renders. Without the `hydrateRoot` path you get FOUC on every page load.
 
 ### 6. Update `package.json`
 
@@ -274,6 +278,63 @@ usePageMeta({ description: 'We're based in PA.' })
 // Correct
 usePageMeta({ description: "We're based in PA." })
 ```
+
+---
+
+## Dynamic islands
+
+Islands let you punch holes through the prerendered HTML for client-only content.
+The static HTML ships clean -- no user-specific data, no crawler exposure. After the
+app hydrates, `mountIslands()` fills each placeholder with a React component.
+
+Good candidates: cart widgets, recently viewed products, logged-in user state,
+personalization banners, live inventory counts, anything that varies per visitor.
+
+Bad candidates: content you want indexed, anything that needs to be in the sitemap,
+above-the-fold content where FOUC would be noticeable without a fallback.
+
+### Declare an island in JSX
+
+```jsx
+// eager (default) -- mounts immediately after hydration
+<pre-island data-pre-island="recently-viewed" />
+
+// visible -- mounts when scrolled into the viewport
+<pre-island data-pre-island="cart-widget" data-pre-load="visible">
+  <span className="island-loading">Loading cart...</span>
+</pre-island>
+
+// idle -- mounts during browser idle time
+<pre-island data-pre-island="promo-banner" data-pre-load="idle" />
+```
+
+Fallback content inside `<pre-island>` renders in the static HTML and is visible to
+crawlers. It is replaced when the island mounts.
+
+### Register the component
+
+In `src/AppIslands.jsx`:
+
+```js
+import RecentlyViewed from './islands/RecentlyViewed.jsx'
+import CartWidget     from './islands/CartWidget.jsx'
+
+export const islands = {
+  'recently-viewed': RecentlyViewed,
+  'cart-widget':     CartWidget,
+}
+```
+
+Island components receive no props. Read data from `localStorage`, `fetch`, or a
+global store inside the component.
+
+### Load strategies
+
+| `data-pre-load` | When it mounts |
+|-----------------|----------------|
+| `eager` (default) | Immediately after `mountIslands()` runs |
+| `visible` | When the element enters the viewport (`IntersectionObserver`) |
+| `idle` | During browser idle time (`requestIdleCallback`) |
 
 ---
 

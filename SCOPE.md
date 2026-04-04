@@ -21,6 +21,10 @@ v2 completes the P0 items from v1's SCOPE.md:
 - [x] **All app-specific strings removed.** `_headers`, `_redirects`, `index.html`,
   and all scripts are now fully generic.
 - [x] **Validated against a second app.** A second production app validated the config interface and uncovered several new gotchas documented in AGENTS.md. Please look over them before embarking.
+- [x] **Dynamic islands.** Client-only `<pre-island>` placeholders let dynamic content
+  (cart widgets, recently viewed, personalization) mount after hydration without
+  appearing in the prerendered HTML. Three load strategies: eager, visible, idle.
+  Registered in `src/AppIslands.jsx`, mounted by `src/islands.js`.
 
 ---
 
@@ -30,6 +34,7 @@ v2 completes the P0 items from v1's SCOPE.md:
 - A set of debugged scripts + patterns you drop into a project
 - Opinionated about CF Pages specifically (cache headers, 404 handling, Pretty URLs)
 - Designed for React Router v6 with the StaticRouter/BrowserRouter split
+- Islands-capable: dynamic client-only content via `<pre-island>` without touching the prerender pipeline
 
 ## What Prestruct is not
 

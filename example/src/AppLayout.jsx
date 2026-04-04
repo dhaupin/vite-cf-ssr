@@ -8,6 +8,7 @@ import { useEffect } from 'react'
 import Home     from './pages/Home.jsx'
 import About    from './pages/About.jsx'
 import Deploy      from './pages/Deploy.jsx'
+import Islands  from './pages/Islands.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 const GITHUB        = 'https://github.com/dhaupin/prestruct'
@@ -42,6 +43,7 @@ export default function AppLayout() {
           <NavLink to="/"     end className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>home</NavLink>
           <NavLink to="/about"   className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>about</NavLink>
           <NavLink to="/deploy"     className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>deploy</NavLink>
+          <NavLink to="/islands"    className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>islands</NavLink>
           <a href={GITHUB} className="nav-github" target="_blank" rel="noopener noreferrer">
             <GitHubIcon />
             <span>github</span>
@@ -51,10 +53,11 @@ export default function AppLayout() {
 
       <main className="main">
         <Routes>
-          <Route path="/"      element={<Home />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/deploy"   element={<Deploy />} />
-          <Route path="*"      element={<NotFound />} />
+          <Route path="/"       element={<Home />} />
+          <Route path="/about"   element={<About />} />
+          <Route path="/deploy"  element={<Deploy />} />
+          <Route path="/islands" element={<Islands />} />
+          <Route path="*"        element={<NotFound />} />
         </Routes>
       </main>
 
