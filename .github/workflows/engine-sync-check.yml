@@ -1,0 +1,42 @@
+name: Verify init/example engine sync
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  verify-engine-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify synced engine files match
+        run: |
+          set -euo pipefail
+
+          files=(
+            "scripts/inject-brand.js"
+            "scripts/prerender.js"
+            "src/hooks/usePageMeta.js"
+            "src/islands.js"
+          )
+
+          mismatch=0
+          for file in "${files[@]}"; do
+            init_file="init/${file}"
+            example_file="example/${file}"
+
+            if ! cmp -s "$init_file" "$example_file"; then
+              echo "::error file=${example_file}::Drift detected. Keep ${example_file} identical to ${init_file}."
+              diff -u "$init_file" "$example_file" || true
+              mismatch=1
+            fi
+          done
+
+          if [ "$mismatch" -ne 0 ]; then
+            echo "Engine sync check failed. Run the sync workflow or copy init files into example."
+            exit 1
+          fi

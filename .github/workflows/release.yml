@@ -1,7 +1,7 @@
 # release.yml
 # -----------
 # Fires when a version tag (v*.*.*) is pushed to main.
-# Zips the /init directory and publishes a GitHub release.
+# Packages only the /init starter files and publishes a GitHub release.
 #
 # After this release is published, sync-example.yml fires automatically
 # to copy the new init files into /example and redeploy the live site.
@@ -35,8 +35,21 @@ jobs:
 
       - name: Build release archive
         run: |
-          ARCHIVE="prestruct-${{ env.VERSION }}.zip"
-          zip -r "${ARCHIVE}" init/ README.md AGENTS.md SCOPE.md CONTENT.md
+          PACKAGE_DIR="prestruct-${{ env.VERSION }}"
+          ARCHIVE="${PACKAGE_DIR}.zip"
+
+          mkdir -p "${PACKAGE_DIR}"
+          cp -R init/. "${PACKAGE_DIR}/"
+          zip -r "${ARCHIVE}" "${PACKAGE_DIR}"
+
+          # Guardrail: release artifacts should only contain starter files from init/
+          unzip -l "${ARCHIVE}" | grep -q "${PACKAGE_DIR}/scripts/prerender.js"
+          unzip -l "${ARCHIVE}" | grep -q "${PACKAGE_DIR}/src/main.jsx"
+          if unzip -l "${ARCHIVE}" | grep -q "example/"; then
+            echo "Unexpected example/ path found in archive."
+            exit 1
+          fi
+
           echo "ARCHIVE=${ARCHIVE}" >> $GITHUB_ENV
 
       - name: Create GitHub release
@@ -65,7 +78,7 @@ jobs:
 
             ### Quick start
 
-            Download and unzip the archive, then copy the contents into your project root.
+            Download and unzip the archive, then copy the files from `prestruct-${{ env.VERSION }}/` into your project root.
             Fill in `ssr.config.js` with your site details and wire your routes into `AppLayout.jsx`.
 
             See [README.md](README.md) and the [live example](https://prestruct.creadev.org) for full integration docs.

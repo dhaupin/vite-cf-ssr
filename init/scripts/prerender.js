@@ -54,12 +54,13 @@ if (!ROUTES.length) {
 // ── Meta injection ────────────────────────────────────────────────────────────
 
 function injectMeta(html, meta, routePath) {
-  const title = meta.title
-  // Escape $ signs -- without this, prices like '$120' become regex backreferences
-  // in .replace() and corrupt the injected content. See AGENTS.md.
-  const desc    = (meta.description || '').replace(/\$/g, '$$$$')
-  const ogImage = meta.ogImage || config.ogImage || ''
-  const url     = `${siteUrl}${routePath === '/' ? '' : routePath}`
+  // Prevent regex backreference expansion when dynamic values are used in replacement strings.
+  const escapeReplacement = (s) => String(s || '').replace(/\$/g, '$$$$')
+
+  const title   = escapeReplacement(meta.title)
+  const desc    = escapeReplacement(meta.description)
+  const ogImage = escapeReplacement(meta.ogImage || config.ogImage || '')
+  const url     = escapeReplacement(`${siteUrl}${routePath === '/' ? '' : routePath}`)
 
   if (title) {
     html = html.replace(/<title>[^<]*<\/title>/,                                     `<title>${title}</title>`)

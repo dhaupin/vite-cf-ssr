@@ -28,6 +28,36 @@ v2 completes the P0 items from v1's SCOPE.md:
 
 ---
 
+## What was done in the proxy sprint
+
+- [x] **Render proxy: VPS.** `scripts/proxy.js` -- Express + Puppeteer, single shared
+  browser process, disk cache with SHA-256 keys, authenticated cache-refresh header,
+  302 redirect for non-bots, graceful render fallback on Puppeteer error.
+
+- [x] **Render proxy: Cloudflare Worker.** `scripts/proxy.worker.js` -- same contract
+  as the VPS proxy, using `@cloudflare/puppeteer` (Browser Rendering API) and KV for
+  cache storage. Requires Workers Paid plan.
+
+- [x] **Config extended.** `config.proxy` block added to `ssr.config.js`:
+  `url`, `secret`, `targetUrl`, `botList`. All fields optional. Null `url` means
+  proxy is disabled -- zero change to the build pipeline.
+
+- [x] **CSP auto-update.** `inject-brand.js` reads `config.proxy.url` after build
+  and appends the proxy origin to `connect-src` in `dist/_headers`. Idempotent --
+  safe to run multiple times, no duplicate entries.
+
+- [x] **wrangler.toml template.** Included for Worker deployments. Documents all
+  required bindings and env vars.
+
+- [x] **proxy.package.json.** Separate package.json for the proxy runtime (Express,
+  Puppeteer, Wrangler). Kept separate from the main app so proxy deps are only
+  installed on the host that needs them.
+
+- [x] **README-proxy.md.** End-to-end setup guide for both runtimes, cache flush
+  instructions, and the targetUrl override pattern.
+
+---
+
 ## What Prestruct is
 
 - A thin prerender layer for existing Vite + React + CF Pages apps
@@ -35,12 +65,13 @@ v2 completes the P0 items from v1's SCOPE.md:
 - Opinionated about CF Pages specifically (cache headers, 404 handling, Pretty URLs)
 - Designed for React Router v6 with the StaticRouter/BrowserRouter split
 - Islands-capable: dynamic client-only content via `<pre-island>` without touching the prerender pipeline
+- Proxy-capable: optional bot-time dynamic rendering via VPS or CF Worker
 
 ## What Prestruct is not
 
 - Not a full SSR framework (no server, no streaming, no edge runtime)
 - Not a competitor to Remix, Astro, or TanStack Start
-- Not suitable for apps needing per-request SSR (this is build-time prerender only)
+- Not suitable for apps needing per-request SSR for humans (this is build-time prerender + bot proxy)
 - Not CMS-aware out of the box (routes are static config) - although it could be built
 
 ---
@@ -53,6 +84,8 @@ v2 completes the P0 items from v1's SCOPE.md:
 
 - [ ] **Config validation.** Check that `ssr.config.js` has all required fields
   before running. Emit clear errors for missing `siteUrl`, `appLayoutPath not found`, etc.
+  Also validate `config.proxy.url` is a valid URL when set, and warn if `proxy.url`
+  is set but `proxy.secret` is null (refresh disabled -- may be intentional, worth surfacing).
 
 - [ ] **Dynamic route support.** Routes are fully static. Add support for an async
   `fetchRoutes()` function in config:
@@ -72,6 +105,14 @@ v2 completes the P0 items from v1's SCOPE.md:
   `meta.ogImage` per route so blog posts, product pages can have unique social images.
   (The inject logic already supports `meta.ogImage`. This is just documenting it.)
 
+- [ ] **Worker bot list sync.** The Worker's `BOT_LIST` in `proxy.worker.js` is a
+  manual copy of `config.proxy.botList`. A build step that writes the config value
+  into the Worker file before `wrangler deploy` would remove the drift risk.
+
+- [ ] **pm2 / systemd starters.** Include a sample `ecosystem.config.cjs` (pm2) and
+  a sample `prestruct-proxy.service` (systemd) for VPS deployment. Currently
+  documented in prose in README-proxy.md only.
+
 ---
 
 ## P2: polish
@@ -80,6 +121,7 @@ v2 completes the P0 items from v1's SCOPE.md:
   the hooks, `peerDependencies` (vite, react, react-router-dom).
 
 - [ ] **GitHub Actions.** CI that runs a test build using the example config.
+  Add a second workflow that deploys the Worker proxy on push to main via `wrangler deploy`.
 
 - [x] **Example app.** The `/example` directory is the live reference app at prestruct.creadev.org. It auto-syncs
   from `init/` on each tagged release via GitHub Actions.
@@ -89,6 +131,10 @@ v2 completes the P0 items from v1's SCOPE.md:
 
 - [ ] **Robots.txt generation.** Currently a static file. Could be generated
   from config (inject sitemap URL, add/remove disallow rules automatically).
+
+- [ ] **Cache stats endpoint.** A `GET /_prestruct/status` route on the VPS proxy
+  returning cache entry count, total size, and oldest/newest entry timestamps.
+  Useful for monitoring without SSH access.
 
 ---
 
@@ -103,6 +149,10 @@ The `siteUrl` is passed as a prop or read from env. No coupling to app config fi
 **Vite version floor:** Vite 5. Vite 6 not yet tested.
 
 **React version floor:** React 18. `hydrateRoot` requires React 18.
+
+**Proxy runtime choice:** Two separate files, not a shared abstraction. The Node and
+Worker environments are different enough that a unified layer adds indirection without
+simplifying either implementation. See AGENTS.md for the full rationale.
 
 ---
 

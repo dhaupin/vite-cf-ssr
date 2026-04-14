@@ -67,6 +67,11 @@ cp templates/src/hooks/usePageMeta.js your-app/src/hooks/`}</CodeBlock>
   ogImage:       'https://yoursite.com/og-image.jpg',
   keywords:      'keyword one, keyword two',
   appLayoutPath: '/src/AppLayout.jsx',
+  proxy: {
+    url:       null, // optional render proxy, e.g. 'https://proxy.yoursite.com'
+    secret:    null, // set only when you enable proxy cache refresh
+    targetUrl: null, // optional upstream render origin (defaults to siteUrl)
+  },
 
   routes: [
     {
@@ -177,7 +182,26 @@ if (root && root.dataset.serverRendered) {
             </div>
 
             <div className="qs-block">
-              <p className="qs-label">7. Remove SPA fallback from public/_redirects</p>
+              <p className="qs-label">7. Optional: enable the render proxy for dynamic bot routes</p>
+              <div className="callout u-mb-1">
+                Keep build-time prerendering for static routes, then add the proxy to cover routes not listed in
+                <code> ssr.config.js</code> (search pages, pagination, dynamic IDs, recently changed content).
+                Humans still get your normal Cloudflare Pages site.
+              </div>
+              <CodeBlock lang="js" label="ssr.config.js (proxy block)">{`proxy: {
+  url:       'https://proxy.yoursite.com', // VPS or Worker URL
+  secret:    'set-the-same-value-as-PRESTRUCT_SECRET',
+  targetUrl: null,                         // defaults to siteUrl
+  botList:   ['Googlebot', 'bingbot'],
+}`}</CodeBlock>
+              <p className="u-tip-label">
+                Use <code>scripts/proxy.js</code> for VPS or <code>scripts/proxy.worker.js</code> for Cloudflare Workers.
+                Full setup: <a href={`${GITHUB}/blob/main/README-proxy.md`} target="_blank" rel="noopener noreferrer">README-proxy.md</a>.
+              </p>
+            </div>
+
+            <div className="qs-block">
+              <p className="qs-label">8. Remove SPA fallback from public/_redirects</p>
               <div className="callout">
                 Remove <code>{'/* /index.html 200'}</code> if present.
                 Prestruct gives every route its own HTML file. The SPA fallback creates
@@ -186,7 +210,7 @@ if (root && root.dataset.serverRendered) {
             </div>
 
             <div className="qs-block">
-              <p className="qs-label">8. Guard any localStorage / window access</p>
+              <p className="qs-label">9. Guard any localStorage / window access</p>
               <CodeBlock lang="js">{`// Wrong: throws in Node during prerender
 const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark')
 

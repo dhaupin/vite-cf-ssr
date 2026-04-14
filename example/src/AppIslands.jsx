@@ -11,7 +11,9 @@
  */
 
 import SessionTrail from './islands/SessionTrail.jsx'
+import EmailIsland  from './components/EmailIsland.jsx'
 
 export const islands = {
   'session-trail': SessionTrail,
+  'email-island':   EmailIsland,
 }

@@ -339,3 +339,142 @@ a smarter system would track file-to-route dependencies and only rerender affect
 
 **CMS-driven routes.** Routes are static config. SCOPE.md P1 covers a `fetchRoutes()`
 async function to pull routes from an API at build time.
+
+---
+
+## The proxy architecture: two runtimes, one config
+
+The proxy ships as two separate files targeting two deployment environments:
+
+- `scripts/proxy.js` -- Node.js / Express / Puppeteer for VPS
+- `scripts/proxy.worker.js` -- Cloudflare Worker via Browser Rendering API
+
+Both read `config.proxy` from `ssr.config.js` for shared settings (botList,
+targetUrl, secret). Bot detection logic and the cache-refresh contract are
+identical across both. The only structural difference is how they store cached
+HTML: the VPS version writes to disk, the Worker version uses KV.
+
+**Why two files instead of a unified abstraction:**
+The runtime environments are too different for a shared abstraction to be worth
+the indirection. Express middleware, filesystem I/O, and process-level browser
+management are Node concepts. Workers have no filesystem, no process, and a
+completely different async model. Forcing both into one file would make both
+harder to read and debug. Two files, each simple on its own terms, is the better
+trade.
+
+---
+
+## Browser pooling in the VPS proxy
+
+The VPS proxy (`proxy.js`) maintains a single shared Puppeteer browser instance.
+Pages are opened and closed per request, but the browser process stays warm.
+
+Why not launch a browser per request (the original spec's approach):
+- Launching Chromium takes 500-2000ms and consumes ~100MB of RAM.
+- Under concurrent bot traffic (Googlebot + Bingbot hitting simultaneously) this
+  causes rapid OOM on small VPS instances.
+- Chromium's per-process overhead is in the process, not the page. One browser,
+  many pages is the correct model.
+
+The browser reference is stored in a module-level variable. On `disconnected`
+(crash, OOM kill, anything), the reference is cleared. The next request calls
+`getBrowser()` which spawns a fresh instance. No manual restart required.
+
+The browser is pre-warmed on startup so the first bot request doesn't absorb the
+cold-start cost.
+
+---
+
+## Cache key: SHA-256 of URL path
+
+The VPS proxy uses SHA-256 of the request URL path (including query string) as the
+cache filename. The Worker proxy uses the same value as a KV key prefix.
+
+Why not base64:
+- Base64 of a URL often contains `/`, `+`, and `=`. Stripping these with a regex
+  replace causes collisions: `/blog/post-1?ref=twitter` and `/blog/post-1?ref=twitte`
+  could produce the same stripped key. SHA-256 hex is always filesystem-safe and
+  collision-resistant.
+
+---
+
+## 302 redirect for non-bots, not 301
+
+Non-bots are redirected to the live site with a 302. An earlier spec used 301.
+
+301 is a permanent redirect cached by browsers indefinitely. If you ever change
+the proxy URL, move the proxy, or disable it entirely, every browser that hit a
+301 will keep redirecting internally without ever reaching the proxy again. 302 is
+temporary and cache-free. The performance difference is negligible -- bots don't
+follow redirects at all, and humans are redirected from a proxy they should never
+be reaching in normal use.
+
+---
+
+## Cache refresh authentication
+
+The `x-prestruct-refresh` header triggers a cache bust for a specific path.
+It is authenticated by comparing the header value to `PRESTRUCT_SECRET` (env var).
+
+Why a shared secret instead of a signed token:
+- A signed token (JWT or HMAC) adds implementation complexity and a time-sync
+  requirement. For a dev-facing cache flush tool, a shared secret is sufficient.
+- If `PRESTRUCT_SECRET` is not set, the refresh feature is disabled entirely.
+  An unset secret does not mean "allow all refreshes" -- it means "feature off."
+
+This is intentional. The risk of accidentally leaving an unauthenticated refresh
+endpoint live outweighs the inconvenience of requiring the env var to be set before
+the feature works.
+
+---
+
+## targetUrl vs siteUrl
+
+`config.proxy.targetUrl` lets the proxy render a different origin than `siteUrl`.
+
+Use cases:
+- WordPress behind Cloudflare: `siteUrl` is the public domain, `targetUrl` is
+  the WordPress origin (or `http://localhost:8080` if the proxy is co-located).
+- Staging environments: point `targetUrl` at a staging URL while `siteUrl` remains
+  production, so bots see the production URL in meta but content is fetched from staging.
+- Local dev: `targetUrl: 'http://localhost:5173'` lets you run the proxy locally
+  against a `vite dev` server.
+
+The localhost loopback case works when the proxy and the target server run on the
+same machine. Puppeteer resolves `localhost` in the context of the proxy process,
+not the requesting client. On a VPS this means the proxy host must also be running
+the target server.
+
+---
+
+## Cloudflare Worker constraints
+
+The Worker version (`proxy.worker.js`) requires:
+
+- Workers Paid plan. Browser Rendering is not available on free.
+- A `[[browser]]` binding in `wrangler.toml`. The binding name must be `BROWSER`.
+- A KV namespace for cache storage. The binding name must be `CACHE`.
+- `PRESTRUCT_TARGET_URL` in `[vars]`.
+- `PRESTRUCT_SECRET` set via `wrangler secret put` (never in wrangler.toml).
+
+`@cloudflare/puppeteer` is not the same as `puppeteer`. It wraps CF's managed
+Chromium and does not support all Puppeteer APIs. The subset used here (goto,
+content, setViewport, setExtraHTTPHeaders) is supported as of early 2025.
+Check the CF docs before adding any new Puppeteer calls.
+
+KV is eventually consistent. A cache bust via `x-prestruct-refresh` may take a
+few seconds to propagate to all CF edge nodes globally.
+
+---
+
+## What the proxy does NOT replace
+
+The proxy is additive, not a replacement for build-time prerender.
+
+- `prerender.js` still runs at build time and produces static HTML for all
+  configured routes. Humans served by CF Pages always get static HTML.
+- The proxy handles bots that hit URLs the build didn't prerender (dynamic routes,
+  paginated URLs, search queries, etc.) or when content has changed since the
+  last build.
+- The proxy is optional. If `config.proxy.url` is null, the build pipeline is
+  unchanged and the proxy files are unused.

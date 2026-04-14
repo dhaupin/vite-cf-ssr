@@ -44,6 +44,33 @@ export default {
         description: 'Punch holes through prerendered HTML for client-only content. Cart widgets, recently viewed, personalization -- served to humans, invisible to crawlers.',
       },
     },
+    {
+      path:       '/terms',
+      priority:   '0.5',
+      changefreq: 'yearly',
+      meta: {
+        title:       'Terms of Service | Prestruct',
+        description: 'Terms of Service for Prestruct - a lightweight build-time prerender layer for Vite + React on Cloudflare Pages.',
+      },
+    },
+    {
+      path:       '/privacy',
+      priority:   '0.5',
+      changefreq: 'yearly',
+      meta: {
+        title:       'Privacy Policy | Prestruct',
+        description: 'Privacy Policy for Prestruct - learn how we handle data in our build-time prerendering tool for Vite + React.',
+      },
+    },
+    {
+      path:       '/contact',
+      priority:   '0.5',
+      changefreq: 'yearly',
+      meta: {
+        title:       'Get Help | Prestruct',
+        description: 'Get help setting up Prestruct - contact the maintainer or open a GitHub issue.',
+      },
+    },
   ],
 
   buildJsonLd() {

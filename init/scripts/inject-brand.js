@@ -12,8 +12,10 @@
  *   - Twitter Card tags
  *   - JSON-LD structured data (from config.buildJsonLd())
  *
- * index.html is the shell template. All brand identity comes from ssr.config.js.
- * Nothing is hardcoded in index.html -- it is the template, not the source of truth.
+ * If config.proxy.url is set, also updates dist/_headers to add the proxy
+ * origin to connect-src. This is done precisely: it finds the existing
+ * connect-src directive and appends only if the origin isn't already there.
+ * Running the build twice is safe -- no duplicate entries.
  *
  * Fails gracefully -- exits 0 on any error so a bad config never blocks deployment.
  * The site will still deploy as a working SPA without prerendered meta.
@@ -40,8 +42,10 @@ try {
 
 const {
   siteUrl, siteName, author, tagline, ogImage, keywords,
-  routes = [], buildJsonLd,
+  routes = [], buildJsonLd, proxy = {},
 } = config
+
+const toReplaceSafe = (value = '') => String(value).replace(/\$/g, '$$$$')
 
 // Homepage meta as the global description fallback
 const homeRoute   = routes.find(r => r.path === '/') || {}
@@ -49,26 +53,34 @@ const title       = `${siteName} | ${tagline}`
 const description = homeRoute.meta?.description ?? ''
 const canonical   = `${siteUrl}/`
 
+const titleSafe       = toReplaceSafe(title)
+const descriptionSafe = toReplaceSafe(description)
+const authorSafe      = toReplaceSafe(author)
+const keywordsSafe    = toReplaceSafe(keywords)
+const canonicalSafe   = toReplaceSafe(canonical)
+const ogImageSafe     = toReplaceSafe(ogImage)
+const siteNameSafe    = toReplaceSafe(siteName)
+
 let html = readFileSync(htmlPath, 'utf8')
 
 // ── Primary meta ──────────────────────────────────────────────────────────────
 
 html = html.replace(/<title>.*?<\/title>/s,
-  `<title>${title}</title>`)
+  `<title>${titleSafe}</title>`)
 
 html = html.replace(/<meta name="description"[^>]*>/,
-  `<meta name="description" content="${description}" />`)
+  `<meta name="description" content="${descriptionSafe}" />`)
 
 html = html.replace(/<meta name="author"[^>]*>/,
-  `<meta name="author" content="${author}" />`)
+  `<meta name="author" content="${authorSafe}" />`)
 
 if (keywords) {
   html = html.replace(/<meta name="keywords"[^>]*>/,
-    `<meta name="keywords" content="${keywords}" />`)
+    `<meta name="keywords" content="${keywordsSafe}" />`)
 }
 
 html = html.replace(/<link rel="canonical"[^>]*>/,
-  `<link rel="canonical" href="${canonical}" />`)
+  `<link rel="canonical" href="${canonicalSafe}" />`)
 
 // ── Remove previously injected OG / JSON-LD blocks (safe to run on rebuild) ──
 
@@ -79,18 +91,18 @@ html = html.replace(/\n\s*<!-- Open Graph -->[\s\S]*?<\/script>\s*/g, '\n  ')
 const ogTags = `
     <!-- Open Graph -->
     <meta property="og:type"         content="website" />
-    <meta property="og:url"          content="${canonical}" />
-    <meta property="og:title"        content="${title}" />
-    <meta property="og:description"  content="${description}" />
-    <meta property="og:image"        content="${ogImage}" />
+    <meta property="og:url"          content="${canonicalSafe}" />
+    <meta property="og:title"        content="${titleSafe}" />
+    <meta property="og:description"  content="${descriptionSafe}" />
+    <meta property="og:image"        content="${ogImageSafe}" />
     <meta property="og:locale"       content="en_US" />
-    <meta property="og:site_name"    content="${siteName}" />
+    <meta property="og:site_name"    content="${siteNameSafe}" />
 
     <!-- Twitter / X Card -->
     <meta name="twitter:card"        content="summary_large_image" />
-    <meta name="twitter:title"       content="${title}" />
-    <meta name="twitter:description" content="${description}" />
-    <meta name="twitter:image"       content="${ogImage}" />`
+    <meta name="twitter:title"       content="${titleSafe}" />
+    <meta name="twitter:description" content="${descriptionSafe}" />
+    <meta name="twitter:image"       content="${ogImageSafe}" />`
 
 // ── JSON-LD ───────────────────────────────────────────────────────────────────
 
@@ -110,10 +122,48 @@ if (typeof buildJsonLd === 'function') {
   }
 }
 
-html = html.replace('</head>', `${ogTags}\n${jsonLdBlock}\n  </head>`)
+const jsonLdBlockSafe = toReplaceSafe(jsonLdBlock)
+
+html = html.replace('</head>', `${ogTags}\n${jsonLdBlockSafe}\n  </head>`)
 
 writeFileSync(htmlPath, html, 'utf8')
 
-console.log('[inject-brand] ✓ injection complete')
+console.log('[inject-brand] injection complete')
 console.log(`  Title:     ${title}`)
 console.log(`  Canonical: ${canonical}`)
+
+// ── CSP update for proxy origin ───────────────────────────────────────────────
+// Only runs when config.proxy.url is set.
+// Appends the proxy origin to the connect-src directive in dist/_headers.
+// Safe to run multiple times -- checks for existing entry before appending.
+
+const headersPath = join(distDir, '_headers')
+
+if (proxy?.url && existsSync(headersPath)) {
+  try {
+    const proxyOrigin = new URL(proxy.url).origin
+
+    let headers = readFileSync(headersPath, 'utf8')
+
+    // Match the full connect-src value up to (but not including) the semicolon
+    const connectSrcRegex = /(Content-Security-Policy:[^\n]*connect-src\s+)([^;]+)/
+
+    const match = headers.match(connectSrcRegex)
+    if (!match) {
+      console.warn('[inject-brand] connect-src not found in _headers -- skipping CSP update')
+    } else {
+      const existing = match[2]
+      if (existing.includes(proxyOrigin)) {
+        console.log(`[inject-brand] CSP already contains proxy origin (${proxyOrigin}) -- skipping`)
+      } else {
+        // Append the proxy origin cleanly, trimming any trailing whitespace first
+        headers = headers.replace(connectSrcRegex, `$1${existing.trimEnd()} ${proxyOrigin}`)
+        writeFileSync(headersPath, headers, 'utf8')
+        console.log(`[inject-brand] CSP connect-src updated with proxy origin: ${proxyOrigin}`)
+      }
+    }
+  } catch (err) {
+    // A bad proxyUrl is a config mistake, not a build-blocker
+    console.warn('[inject-brand] CSP update failed:', err.message)
+  }
+}

@@ -3,9 +3,11 @@
  * =============
  * Your app's SSR configuration. Lives in the project root.
  * Read by scripts/inject-brand.js and scripts/prerender.js at build time.
+ * Read by scripts/proxy.js at runtime (VPS or Cloudflare Worker).
  *
  * This is the only file you edit to configure the prerender layer.
- * The engine scripts (prerender.js, inject-brand.js, usePageMeta.js) never change.
+ * The engine scripts (prerender.js, inject-brand.js, usePageMeta.js, proxy.js)
+ * never need to change.
  */
 
 export default {
@@ -25,6 +27,45 @@ export default {
   // ssrLoadModule imports this file. Its entire module graph must be BrowserRouter-free.
 
   appLayoutPath: '/src/AppLayout.jsx',
+
+  // ── Render proxy ──────────────────────────────────────────────────────────
+  // Optional. Enables bot-time dynamic rendering in addition to build-time prerender.
+  //
+  // url:       Public URL of your proxy. Added to CSP connect-src automatically.
+  //            Set to null to disable proxy mode entirely.
+  //
+  // secret:    Shared secret for the x-prestruct-refresh header.
+  //            Must match PRESTRUCT_SECRET env var on the proxy host.
+  //            Set to null to disable cache-refresh entirely.
+  //
+  // targetUrl: The site the proxy actually renders. Defaults to siteUrl when null.
+  //            Override to point the proxy at a different origin (e.g. a WordPress
+  //            site, a staging URL, or localhost:5173 for local dev).
+  //
+  // botList:   User-agent substrings that trigger a proxy render instead of a
+  //            redirect. Case-insensitive. Matches are partial -- 'googlebot'
+  //            matches 'Mozilla/5.0 (compatible; Googlebot/2.1...)'.
+
+  proxy: {
+    url:       null,   // e.g. 'https://proxy.yoursite.com' or 'https://your-proxy.workers.dev'
+    secret:    null,   // e.g. 'a-long-random-string'  (set same value as PRESTRUCT_SECRET env)
+    targetUrl: null,   // defaults to siteUrl when null
+    botList: [
+      'googlebot',
+      'bingbot',
+      'slurp',
+      'duckduckbot',
+      'baiduspider',
+      'yandexbot',
+      'twitterbot',
+      'facebookexternalhit',
+      'discordbot',
+      'linkedinbot',
+      'slackbot',
+      'telegrambot',
+      'whatsapp',
+    ],
+  },
 
   // ── Routes ─────────────────────────────────────────────────────────────────
   // One entry per prerendered route.

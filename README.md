@@ -75,12 +75,12 @@ init/                       Release source of truth. Tagged and zipped by CI.
   VERSION                   Current release version
 
 example/                    Working starting point and live integration reference.
-  scripts/                  Auto-synced from init/ on each release via GitHub Actions
-  src/hooks/usePageMeta.js  Auto-synced from init/ on each release
+  scripts/                  Auto-synced from init/. CI fails if engine files drift.
+  src/hooks/usePageMeta.js  Auto-synced from init/. CI fails if engine files drift.
   ...                       Site-specific UI. Use it as a reference, not a dependency.
 ```
 
-Files marked **Engine** stay identical across apps. Copy them and never edit.
+Files marked **Engine** stay identical across apps. Copy them and never edit. CI enforces this by failing when designated `init/` and `example/` engine files differ.
 Files marked **Template** need minor app-specific wiring (see Integration below).
 
 ---
@@ -219,9 +219,13 @@ export default (args) => usePageMeta({ siteUrl: SITE_URL, ...args })
 
 ### 5. Update `main.jsx`
 
-The release includes `src/main.jsx`. It handles two things: `hydrateRoot` when SSR
-content is present (`createRoot` otherwise), and calling `mountIslands()` after the
-app renders. Without the `hydrateRoot` path you get FOUC on every page load.
+The release includes `src/main.jsx`. It handles the hydrate vs create-root decision:
+`hydrateRoot` when SSR content is present (`createRoot` otherwise). Without the
+`hydrateRoot` path you get FOUC on every page load.
+
+Island mounting is handled in `AppLayout`, not in `main.jsx`. `AppLayout` rescans
+for `<pre-island>` nodes on initial render and on route changes, so islands mount
+correctly for both hard loads and SPA navigation.
 
 ### 6. Update `package.json`
 
@@ -370,6 +374,22 @@ would find no match, and the page would be blank. See AGENTS.md.
 The value is that the entire prerender pipeline is ~200 lines of readable Node. You can
 read prerender.js in 10 minutes and know exactly what it does. When something breaks,
 you can fix it. That's the point.
+
+---
+
+## Repository QC tests
+
+This repo includes lightweight unit-style checks in `/test` for CI and local validation:
+
+- init/example engine sync guardrails
+- explicit `react-router-dom/server.js` extension enforcement
+- release workflow archive packaging rules (init-only contents)
+
+Run them from repo root:
+
+```bash
+node --test test/qc.test.mjs
+```
 
 ---
 
