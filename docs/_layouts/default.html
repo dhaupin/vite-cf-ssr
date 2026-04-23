@@ -293,11 +293,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
     }
     
     async function doSearch(q,resultsEl){
-      resultsEl.innerHTML='<div style="padding:1rem 1.25rem;color:var(--text-2)">Loading...</div>';
       if(q.length<2){
         resultsEl.innerHTML='';
         return;
       }
+      resultsEl.innerHTML='<div style="padding:1rem 1.25rem;color:var(--text-2)">Loading...</div>';
       try{
         var pagefind=await import('{{ site.baseurl }}/pagefind/pagefind.js');
         await pagefind.init();
