@@ -38,6 +38,14 @@ nav:
         url: /guides/troubleshooting
       - title: Migration Guide
         url: /guides/migration
+      - title: Advanced Islands
+        url: /guides/advanced-islands
+      - title: Testing
+        url: /guides/testing
+      - title: Structured Data
+        url: /guides/structured-data
+      - title: Build Optimization
+        url: /guides/build-optimization
   - title: GitHub
     url: https://github.com/dhaupin/prestruct
     external: true
