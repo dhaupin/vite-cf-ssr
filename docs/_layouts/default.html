@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#080808">
+  <meta name="theme-color" content="#f8f8f6">
   <title>{{ page.title }} | {{ site.title }}</title>
   
   <!-- Fonts -->
@@ -30,8 +30,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 .nav-link.active{color:var(--accent)}
 .nav-github{font-family:var(--mono);font-size:.72rem;color:var(--text-3);padding:.35rem .75rem;border:1px solid var(--border-2);border-radius:var(--radius);margin-left:.5rem;display:flex;align-items:center;gap:.4rem;transition:color .15s,border-color .15s;text-decoration:none}
 .nav-github:hover{color:var(--text);border-color:var(--text-3);text-decoration:none}
-.theme-toggle{display:none;background:none;border:1px solid var(--border-2);border-radius:var(--radius);color:var(--text-3);cursor:pointer;width:32px;height:32px;align-items:center;justify-content:center;transition:color .15s,border-color .15s}
+.theme-toggle{display:flex;background:none;border:1px solid var(--border-2);border-radius:var(--radius);color:var(--text-3);cursor:pointer;width:32px;height:32px;align-items:center;justify-content:center;transition:color .15s,border-color .15s}
 .theme-toggle:hover{color:var(--text);border-color:var(--text-3)}
+.theme-toggle .icon-sun,.theme-toggle .icon-moon{display:none}
+[data-theme=light] .theme-toggle .icon-sun{display:block}
+[data-theme=dark] .theme-toggle .icon-moon{display:block}
 .main{flex:1}
 .container{max-width:var(--max);margin:0 auto;padding:0 2rem}
 .page-hero{padding:3.5rem 0 3rem;border-bottom:1px solid var(--border)}
@@ -86,6 +89,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
       <a href="{{ site.baseurl }}/" class="header-wordmark">
         <span class="wordmark-slash">[</span>pre<span class="wordmark-accent">struct</span><span class="wordmark-bracket">]</span><span class="wordmark-docs">docs</span>
       </a>
+      <div class="header-actions">
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <svg class="icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg class="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
+      </div>
       <nav class="nav" id="nav">
         <a href="{{ site.baseurl }}/" class="nav-link">home</a>
         <a href="{{ site.baseurl }}/guides/seo" class="nav-link">seo</a>
@@ -131,6 +140,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
     document.querySelectorAll('.nav-link').forEach(function(a){
       if(a.getAttribute('href').replace('{{ site.baseurl }}','')===path)a.classList.add('active');
     });
+    // Theme toggle
+    var toggle=document.getElementById('themeToggle');
+    var html=document.documentElement;
+    toggle.addEventListener('click',function(){
+      var current=html.getAttribute('data-theme');
+      var next=current==='light'?'dark':'light';
+      html.setAttribute('data-theme',next);
+      localStorage.setItem('theme',next);
+    });
+    // Load saved theme
+    var saved=localStorage.getItem('theme');
+    if(saved)html.setAttribute('data-theme',saved);
   </script>
 </body>
 </html>
