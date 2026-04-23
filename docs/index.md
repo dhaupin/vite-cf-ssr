@@ -4,7 +4,6 @@ layout: default
 nav_order: 1
 ---
 
-# prestruct Docs
 
 > Static site generation for Cloudflare Pages with prerendered React apps
 
