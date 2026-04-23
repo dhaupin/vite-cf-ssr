@@ -25,12 +25,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
   [data-theme=dark] .site-header{backdrop-filter:blur(12px);background:rgba(8,8,8,.92)}
 }
 @media(max-width:600px){
-  .site-header .nav{display:flex;position:absolute;top:52px;left:0;right:0;flex-direction:column;background:var(--bg);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.5rem 0;z-index:9}
+  .site-header .nav{display:none;position:absolute;top:52px;left:0;right:0;flex-direction:column;background:var(--bg);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.5rem 0;z-index:9}
   .site-header .nav.open{display:flex}
   .site-header .nav-link{padding:.65rem 1.25rem;border-radius:0}
-  .site-header .nav-folder{flex-direction:column}
+  .site-header .nav-folder{flex-direction:column;position:static}
   .site-header .nav-folder-toggle{padding:.65rem 1.25rem;text-align:left}
-  .site-header .nav-folder-items{position:static;box-shadow:none;border:none}
+  .site-header .nav-folder-items{position:static;box-shadow:none;border:none;display:none;background:var(--bg-2)}
+  .site-header .nav-folder.open .nav-folder-items{display:block}
 }
 .header-actions{display:flex;align-items:center;gap:.5rem}
 .header-wordmark{font-family:var(--mono);font-size:.82rem;font-weight:600;color:var(--text);letter-spacing:.02em;display:flex;align-items:center;gap:.5rem;text-decoration:none}
