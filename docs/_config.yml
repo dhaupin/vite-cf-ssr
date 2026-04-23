@@ -18,8 +18,6 @@ nav:
     items:
       - title: Configuration
         url: /guides/config
-      - title: React Integration
-        url: /guides/react
       - title: Vite Integration
         url: /guides/vite
       - title: Cloudflare Pages
@@ -40,32 +38,12 @@ nav:
         url: /guides/migration
       - title: Advanced Islands
         url: /guides/advanced-islands
-      - title: Testing
-        url: /guides/testing
       - title: Structured Data
         url: /guides/structured-data
       - title: Build Optimization
         url: /guides/build-optimization
-      - title: Internationalization
-        url: /guides/i18n
-      - title: Analytics & Monitoring
-        url: /guides/analytics
-      - title: Security
-        url: /guides/security
       - title: Advanced Proxy
         url: /guides/proxy
-      - title: PWA Guide
-        url: /guides/pwa
-      - title: Images
-        url: /guides/images
-      - title: Edge Functions
-        url: /guides/edge-functions
-      - title: Design Systems
-        url: /guides/design-systems
-      - title: CI/CD
-        url: /guides/cicd
-      - title: Multi-site
-        url: /guides/multisite
   - title: GitHub
     url: https://github.com/dhaupin/prestruct
     external: true
