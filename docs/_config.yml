@@ -6,10 +6,12 @@ description: Static site generation for Cloudflare Pages - Documentation
 baseurl: "/prestruct"
 url: "https://dhaupin.github.io"
 show_downloads: false
-google_analytics: 
 
 # Theme - GitHub Pages default
 theme: jekyll-theme-minimal
+
+# Use pretty URLs (/page/ instead of /page.html)
+permalink: pretty
 
 # Markdown config
 markdown: kramdown
