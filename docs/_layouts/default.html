@@ -99,10 +99,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 .footer-creadev span{font-weight:600}
 .nav-toggle{position:absolute;right:1rem;top:50%;transform:translateY(-50%);display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:32px;height:32px;padding:0;background:transparent;border:1px solid var(--border-2);border-radius:var(--radius);cursor:pointer}
 @media(min-width:601px){.nav-toggle{display:none!important}}
-.nav-toggle span{display:block;width:14px;height:1px;background:var(--text-2);transition:transform .2s,opacity .2s}
-.nav-toggle.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.nav-toggle:hover{background:var(--bg-2)}
+.nav-toggle span{display:block;width:14px;height:2px;background:var(--text-2);border-radius:2px;transition:transform .2s,opacity .2s,background .2s}
+.nav-toggle.open span:nth-child(1){transform:translateY(6px) rotate(45deg);background:var(--accent)}
 .nav-toggle.open span:nth-child(2){opacity:0}
-.nav-toggle.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+.nav-toggle.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg);background:var(--accent)}
 @media(max-width:600px){
   .site-header,.container{padding:0 1rem}
   .header-actions{position:absolute;right:3.5rem;top:50%;transform:translateY(-50%)}
@@ -131,7 +132,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
       <nav class="nav" id="nav">
         {% for item in site.nav %}
           {% if item.folder %}
-          <div class="nav-folder">
+          <div class="nav-folder open">
             <button class="nav-folder-toggle" onclick="this.parentElement.classList.toggle('open')">{{ item.title }}</button>
             <div class="nav-folder-items">
               {% for subitem in item.items %}
