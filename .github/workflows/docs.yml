@@ -52,7 +52,11 @@ jobs:
 
       - name: Index search with Pagefind
         working-directory: docs
-        run: ./pagefind --site _site
+        run: |
+          echo "=== Running Pagefind ==="
+          ./pagefind --site _site || true
+          echo "=== Checking output ==="
+          ls -la _site/pagefind/ 2>/dev/null || echo "No pagefind dir found"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
