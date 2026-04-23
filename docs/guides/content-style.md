@@ -39,6 +39,19 @@ This is a developer tool. The audience is engineers who are confident with Vite,
   - Wrong: "Features"
   - Right: "What you get"
 
+### Briefs
+
+Every section, code block, and list needs a one-line brief before it.
+
+The brief explains *why*, not *what*. It sets context before diving in.
+
+- Wrong: "Steps:" → [list]
+- Wrong: "```bash" → [code without intro]
+- Right: "Build the project:" → ```bash
+- Right: "Use this when the server needs to stay warm:" → [configuration]
+
+Briefs are not required for short pages. Use judgment. If a section needs setup, add one.
+
 ## Formatting
 
 - **Bold** only when the word or phrase genuinely needs to stand out.
