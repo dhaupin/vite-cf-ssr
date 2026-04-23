@@ -85,13 +85,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 .search-bar-input{display:none;padding:.4rem .75rem;font-size:.8rem;font-family:var(--mono);background:var(--bg-1);color:var(--text);border:1px solid var(--border-2);border-radius:var(--radius);outline:none;width:140px;transition:width .2s,border-color .15s}
 .search-bar-input:focus{border-color:var(--accent);width:180px}
 .search-bar-input::placeholder{color:var(--text-3)}
-.search-bar-shortcut{font-family:var(--mono);font-size:.7rem;color:var(--text-3);padding:.2rem .4rem;background:var(--bg-2);border:1px solid var(--border-2);border-radius:var(--radius);display:none}
-.search-bar-input{text-indent:0}
+.search-bar-shortcut{font-family:var(--mono);font-size:.7rem;color:var(--text-3);padding:.2rem .4rem;background:var(--bg-2);border:1px solid var(--border-2);border-radius:var(--radius);display:block;position:absolute;right:.4rem;top:50%;transform:translateY(-50%);pointer-events:none}
+.search-bar-shortcut::after{content:"\u2318K"}
+.search-bar-input{text-indent:0;position:relative}
 .search-bar-input::-webkit-input-placeholder{text-indent:0}
 .search-bar-input::placeholder{color:var(--text-3)}
 .search-bar-input:focus{text-indent:0}
 .search-bar-input:focus::-webkit-input-placeholder{text-indent:-30px}
-.search-bar-input:focus::placeholder{text-indent:-30px}
+.search-bar-input:focus::placeholder{text-indent:-30px;visibility:hidden}
+.search-bar-input:focus+.search-bar-shortcut{display:none}
 .search-modal{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:100;display:none;align-items:flex-start;justify-content:center;padding:10vh 1rem}
 .search-modal.open{display:flex}
 .search-modal-content{width:100%;max-width:600px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-top:5vh}
@@ -169,7 +171,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
       <div class="header-actions">
         <div class="search-bar">
           <input type="text" class="search-bar-input" id="searchBarInput" placeholder="Search..." autocomplete="off">
-          <span class="search-bar-shortcut">⌘K</span>
         </div>
         <button class="search-trigger" id="searchTrigger" aria-label="Search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
