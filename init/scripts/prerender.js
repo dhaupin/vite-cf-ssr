@@ -134,9 +134,14 @@ function generate404(shell) {
     `$1${siteUrl}/$2`
   )
   // noindex -- 404 pages should not appear in search results
+  // Remove existing robots meta first to avoid duplicate, then insert noindex
   html = html.replace(
-    '<meta name="robots"',
-    '<meta name="robots" content="noindex, nofollow" />\n  <meta name="robots" data-original="true"'
+    /<meta\s+name="robots"\s+content="[^"]*"\s*\/?>/s,
+    ''
+  )
+  html = html.replace(
+    '<meta name="author"',
+    '<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />\n  <meta name="author"'
   )
   // Strip the React bundle -- 404 is pure static HTML, no React needed
   html = html.replace(/<script type="module"[^>]*><\/script>/, '')
