@@ -7,6 +7,23 @@ baseurl: "/prestruct"
 url: "https://dhaupin.github.io"
 show_downloads: false
 
+# Navigation structure
+nav:
+  - title: Home
+    url: /
+  - title: Guides
+    folder: guides
+    items:
+      - title: SEO Guide
+        url: /guides/seo
+      - title: Performance
+        url: /guides/performance
+      - title: Routing
+        url: /guides/routing
+  - title: GitHub
+    url: https://github.com/dhaupin/prestruct
+    external: true
+
 # Theme - GitHub Pages default
 theme: jekyll-theme-minimal
 

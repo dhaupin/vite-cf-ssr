@@ -19,12 +19,35 @@ html{font-size:16px;scroll-behavior:smooth}
 body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;background-image:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.012) 2px,rgba(255,255,255,.012) 4px)}
 .app{display:flex;flex-direction:column;min-height:100vh}
 .site-header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--border);padding:0 2rem;height:52px;display:flex;align-items:center;justify-content:space-between}
-@media(min-width:601px){.site-header{backdrop-filter:blur(12px);background:rgba(8,8,8,.92)}}
-.header-actions{display:flex;align-items:center;gap:.5rem}
-.header-wordmark{font-family:var(--mono);font-size:.82rem;font-weight:600;color:var(--text);letter-spacing:.02em;display:flex;align-items:center;gap:.5rem;text-decoration:none}
-.header-wordmark:hover{text-decoration:none;color:var(--accent)}
-.wordmark-docs{font-size:.65rem;font-weight:500;letter-spacing:.1em;color:var(--text-3);margin-left:.25rem}
+.site-header .nav{display:none}
+@media(min-width:601px){
+  .site-header .nav{display:flex}
+  .site-header{backdrop-filter:blur(12px);background:rgba(8,8,8,.92)}
+}
+@media(max-width:600px){
+  .site-header .nav{display:flex;position:absolute;top:52px;left:0;right:0;flex-direction:column;background:var(--bg);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.5rem 0;z-index:9}
+  .site-header .nav.open{display:flex}
+  .site-header .nav-link{padding:.65rem 1.25rem;border-radius:0}
+  .site-header .nav-folder{flex-direction:column}
+  .site-header .nav-folder-toggle{padding:.65rem 1.25rem;text-align:left}
+  .site-header .nav-folder-items{position:static;box-shadow:none;border:none}
+}
 .nav{display:flex;align-items:center;gap:.25rem}
+.nav-folder{position:relative}
+.nav-folder-toggle{font-family:var(--mono);font-size:.75rem;font-weight:400;color:var(--text-2);letter-spacing:.04em;padding:.35rem .75rem;border-radius:var(--radius);cursor:pointer;background:none;border:none;transition:color .15s,background .15s}
+.nav-folder-toggle:hover{color:var(--text);background:var(--bg-2)}
+.nav-folder-toggle:after{content:"+";margin-left:.5rem;opacity:.5}
+.nav-folder.open .nav-folder-toggle:after{content:"−"}
+.nav-folder-items{display:none;position:absolute;top:100%;left:0;min-width:160px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.nav-folder.open .nav-folder-items{display:block}
+.nav-folder-items a{display:block;padding:.5rem .75rem;color:var(--text-2);font-size:.85rem;transition:color .15s,background .15s}
+.nav-folder-items a:hover{color:var(--text);background:var(--bg-2);text-decoration:none}
+.menu-folder-toggle{display:block;width:100%;text-align:left;padding:1rem;color:var(--text);background:none;border:none;font-size:1rem;cursor:pointer}
+.menu-folder-toggle:after{content:"+";float:right}
+.menu-folder.open .menu-folder-toggle:after{content:"−"}
+.menu-folder-items{display:none;padding-left:1rem}
+.menu-folder.open .menu-folder-items{display:block}
+.menu-folder-items a{display:block;padding:.5rem;color:var(--text-2)}
 .nav-link{font-family:var(--mono);font-size:.75rem;font-weight:400;color:var(--text-2);letter-spacing:.04em;padding:.35rem .75rem;border-radius:var(--radius);transition:color .15s,background .15s;text-decoration:none}
 .nav-link:hover{color:var(--text);background:var(--bg-2);text-decoration:none}
 .nav-link.active{color:var(--accent)}
@@ -67,7 +90,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 .footer-creadev a{color:var(--text-3);transition:color .15s}
 .footer-creadev a:hover{color:var(--accent);text-decoration:none}
 .footer-creadev span{font-weight:600}
-.nav-toggle{display:none;flex-direction:column;justify-content:center;gap:5px;width:32px;height:32px;padding:0;background:transparent;border:1px solid var(--border-2);border-radius:var(--radius);cursor:pointer}
+.nav-toggle{position:absolute;right:1rem;top:50%;transform:translateY(-50%);display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:32px;height:32px;padding:0;background:transparent;border:1px solid var(--border-2);border-radius:var(--radius);cursor:pointer}
+@media(min-width:601px){.nav-toggle{display:none!important}}
 .nav-toggle span{display:block;width:14px;height:1px;background:var(--text-2);transition:transform .2s,opacity .2s}
 .nav-toggle.open span:nth-child(1){transform:translateY(6px) rotate(45deg)}
 .nav-toggle.open span:nth-child(2){opacity:0}
@@ -75,11 +99,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 @media(max-width:600px){
   .site-header,.container{padding:0 1rem}
   .header-actions{position:absolute;right:3.5rem;top:50%;transform:translateY(-50%)}
-  .nav-toggle{display:flex;position:absolute;right:1rem;top:50%;transform:translateY(-50%)}
-  .nav{display:none;position:absolute;top:52px;left:0;right:0;flex-direction:column;background:var(--bg);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.5rem 0;z-index:9}
-  .nav.open{display:flex}
-  .nav-link{padding:.65rem 1.25rem;border-radius:0}
-  .nav-github{margin:.25rem 1rem 0;justify-content:center}
+  .nav-toggle{display:flex}
   .site-footer{padding:1.5rem 1rem}
   .footer-legal{justify-content:center;text-align:center}
 }
@@ -102,11 +122,22 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
         </button>
       </div>
       <nav class="nav" id="nav">
-        <a href="{{ site.baseurl }}/" class="nav-link">home</a>
-        <a href="{{ site.baseurl }}/guides/seo" class="nav-link">seo</a>
-        <a href="{{ site.baseurl }}/guides/performance" class="nav-link">performance</a>
-        <a href="{{ site.baseurl }}/guides/routing" class="nav-link">routing</a>
-        <a href="https://github.com/dhaupin/prestruct" class="nav-github" target="_blank" rel="noopener">github</a>
+        {% for item in site.nav %}
+          {% if item.folder %}
+          <div class="nav-folder">
+            <button class="nav-folder-toggle" onclick="this.parentElement.classList.toggle('open')">{{ item.title }}</button>
+            <div class="nav-folder-items">
+              {% for subitem in item.items %}
+              <a href="{{ site.baseurl }}{{ subitem.url }}">{{ subitem.title }}</a>
+              {% endfor %}
+            </div>
+          </div>
+          {% elsif item.external %}
+          <a href="{{ item.url }}" class="nav-link" target="_blank" rel="noopener">{{ item.title }}</a>
+          {% else %}
+          <a href="{{ site.baseurl }}{{ item.url }}" class="nav-link">{{ item.title }}</a>
+          {% endif %}
+        {% endfor %}
       </nav>
       <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -126,10 +157,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
     
     <footer class="site-footer">
       <div class="footer-legal">
-        <a href="https://github.com/dhaupin/prestruct">github</a>
-        <a href="{{ site.baseurl }}/guides/seo">seo</a>
-        <a href="{{ site.baseurl }}/guides/performance">performance</a>
-        <a href="{{ site.baseurl }}/guides/routing">routing</a>
+        {% for item in site.nav %}
+          {% if item.external %}
+          <a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.title }}</a>
+          {% else %}
+          <a href="{{ site.baseurl }}{{ item.url }}">{{ item.title }}</a>
+          {% endif %}
+        {% endfor %}
       </div>
       <div class="footer-creadev">
         <a href="https://creadev.org">Built by <span>Creadev</span></a>
@@ -155,9 +189,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
       html.setAttribute('data-theme',next);
       localStorage.setItem('theme',next);
     });
-    // Load saved theme
+    // Load saved theme or default to light
     var saved=localStorage.getItem('theme');
-    if(saved)html.setAttribute('data-theme',saved);
+    if(!saved)html.setAttribute('data-theme','light');
+    else if(saved==='light'||saved==='dark')html.setAttribute('data-theme',saved);
   </script>
 </body>
 </html>
