@@ -48,21 +48,11 @@ jobs:
 
       - name: Jekyll build
         working-directory: docs
-        run: |
-          bundle exec jekyll build
-          echo "=== Site structure ==="
-          find _site -name "*.html" | head -10
+        run: bundle exec jekyll build
 
       - name: Index search with Pagefind
         working-directory: docs
-        run: |
-          echo "=== Pagefind binary ==="
-          ls -la pagefind
-          file pagefind
-          echo "=== Running Pagefind ==="
-          ./pagefind --site _site 2>&1 || echo "Pagefind failed with code $?"
-          echo "=== Checking output ==="
-          ls -la _site/pagefind/ 2>/dev/null || echo "No pagefind output dir"
+        run: ./pagefind --site _site || true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
