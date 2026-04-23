@@ -4,8 +4,6 @@ title: Content Style
 nav_order: 20
 ---
 
-# Content style
-
 Language, content, tone, and style reference for prestruct.
 
 ## Tone and voice
