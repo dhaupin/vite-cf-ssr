@@ -20,8 +20,12 @@ nav:
         url: /guides/config
       - title: Vite Integration
         url: /guides/vite
+      - title: CLI Reference
+        url: /guides/cli
       - title: Cloudflare Pages
         url: /guides/cloudflare
+      - title: Redirects
+        url: /guides/redirects
       - title: SEO Guide
         url: /guides/seo
       - title: Performance
@@ -44,6 +48,17 @@ nav:
         url: /guides/build-optimization
       - title: Advanced Proxy
         url: /guides/proxy
+  - title: Community
+    folder: community
+    items:
+      - title: Examples
+        url: /guides/examples
+      - title: Contributing
+        url: /guides/contributing
+      - title: Changelog
+        url: /guides/changelog
+      - title: Roadmap
+        url: /guides/roadmap
   - title: GitHub
     url: https://github.com/dhaupin/prestruct
     external: true
