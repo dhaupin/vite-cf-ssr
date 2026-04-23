@@ -58,6 +58,14 @@ nav:
         url: /guides/pwa
       - title: Images
         url: /guides/images
+      - title: Edge Functions
+        url: /guides/edge-functions
+      - title: Design Systems
+        url: /guides/design-systems
+      - title: CI/CD
+        url: /guides/cicd
+      - title: Multi-site
+        url: /guides/multisite
   - title: GitHub
     url: https://github.com/dhaupin/prestruct
     external: true
