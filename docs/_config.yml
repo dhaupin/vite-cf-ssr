@@ -11,15 +11,47 @@ show_downloads: false
 nav:
   - title: Home
     url: /
+  - title: Getting Started
+    url: /guides/getting-started
   - title: Guides
     folder: guides
     items:
+      - title: Configuration
+        url: /guides/config
+      - title: React Integration
+        url: /guides/react
+      - title: Vite Integration
+        url: /guides/vite
+      - title: Cloudflare Pages
+        url: /guides/cloudflare
       - title: SEO Guide
         url: /guides/seo
       - title: Performance
         url: /guides/performance
       - title: Routing
         url: /guides/routing
+      - title: Architecture
+        url: /guides/architecture
+      - title: API Reference
+        url: /guides/api
+      - title: Troubleshooting
+        url: /guides/troubleshooting
+      - title: Migration Guide
+        url: /guides/migration
+      - title: Advanced Islands
+        url: /guides/advanced-islands
+      - title: Testing
+        url: /guides/testing
+      - title: Structured Data
+        url: /guides/structured-data
+      - title: Build Optimization
+        url: /guides/build-optimization
+      - title: Internationalization
+        url: /guides/i18n
+      - title: Analytics & Monitoring
+        url: /guides/analytics
+      - title: Security
+        url: /guides/security
   - title: GitHub
     url: https://github.com/dhaupin/prestruct
     external: true
