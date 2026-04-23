@@ -66,6 +66,14 @@ nav:
         url: /guides/cicd
       - title: Multi-site
         url: /guides/multisite
+      - title: Forms & Data
+        url: /guides/forms
+      - title: Authentication
+        url: /guides/authentication
+      - title: TypeScript
+        url: /guides/typescript
+      - title: Environment Variables
+        url: /guides/environment
   - title: GitHub
     url: https://github.com/dhaupin/prestruct
     external: true
