@@ -3,6 +3,8 @@
 
 title: prestruct
 description: Static site generation for Cloudflare Pages - Documentation
+baseurl: "/prestruct"
+url: "https://dhaupin.github.io"
 show_downloads: false
 google_analytics: 
 
@@ -14,9 +16,3 @@ markdown: kramdown
 kramdown:
   input: GFM
   syntax_highlighter: rouge
-
-# Collections for guides
-collections:
-  guides:
-    output: true
-    permalink: /:path/
