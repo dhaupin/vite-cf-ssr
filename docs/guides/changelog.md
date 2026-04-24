@@ -21,9 +21,7 @@ Changes since v0.2.2:
 - Fix: 404 pages get noindex meta to prevent crawling
 
 ### Docs: Guides
-- Docs: 21 guides covering all aspects
-- Docs: New guides: CLI, Contributing, Examples, Changelog, Roadmap, Redirects
-- Docs: 25+ prestruct-specific guides
+- Docs: 25+ prestruct guides covering getting started to advanced
 
 ### Docs: UI/UX
 - Docs: Pagefind search integration with ⌘K shortcut
