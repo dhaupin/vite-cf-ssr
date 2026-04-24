@@ -28,7 +28,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 .app{display:flex;flex-direction:column;min-height:100vh}
 .site-header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--border);padding:0 2rem;height:52px;display:flex;align-items:center;justify-content:space-between}
 .site-header .nav{display:none}
-.site-header .header-actions{order:1}
+.site-header .nav{order:1}
+.site-header .header-actions{order:2}
 .guide-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin:1.5rem 0}
 .guide-card{display:block;padding:1rem;border:1px solid var(--border);border-radius:var(--radius);text-decoration:none;transition:border-color .15s,box-shadow .15s}
 .guide-card:hover{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
@@ -157,6 +158,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 .nav-toggle.open span:nth-child(2){opacity:0}
 .nav-toggle.open span:nth-child(3){transform:translateY(-6px) rotate(-45deg);background:var(--accent)}
 @media(max-width:600px){
+  .site-header .nav{order:0}
   .site-header,.container{padding:0 1rem}
   .header-actions{position:absolute;right:3.5rem;top:50%;transform:translateY(-50%)}
   .nav-toggle{display:flex}
@@ -191,7 +193,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
         {% for item in site.nav %}
           {% if item.folder %}
           <div class="nav-folder">
-            <button class="nav-folder-toggle" onclick="this.parentElement.classList.toggle('open')">{{ item.title }}</button>
+            <button class="nav-folder-toggle" onclick="var f=this.parentElement.parentElement.querySelectorAll('.nav-folder.open');f.forEach(e=>e!==this.parentElement&&e.classList.remove('open'));this.parentElement.classList.toggle('open')">{{ item.title }}</button>
             <div class="nav-folder-items">
               {% for subitem in item.items %}
               <a href="{{ site.baseurl }}{{ subitem.url }}">{{ subitem.title }}</a>
