@@ -36,8 +36,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:
 .guide-cards h4{font-size:1rem;font-weight:600;margin-bottom:.5rem;color:var(--text)}
 .guide-cards p{font-size:.9rem;color:var(--text-2);line-height:1.5}
 @media(min-width:601px){
-  .site-header .nav{display:flex}
-  .site-header .header-actions{flex-shrink:0;margin-left:auto}
+  .site-header .nav{display:flex;flex-grow:1;justify-content:flex-end}
+  .site-header .header-actions{flex-shrink:0}
   [data-theme=dark] .site-header{backdrop-filter:blur(12px);background:rgba(8,8,8,.92)}
 }
 @media(max-width:600px){
