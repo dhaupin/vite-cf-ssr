@@ -15,6 +15,9 @@ Changes since v0.2.2:
 - Proxy support for bot rendering (VPS and Worker)
 - BrowserRouter isolation pattern
 - Prerender pipeline improvements
+- ssrLoadModule over vite build --ssr (required for proper StaticRouter context)
+- Dynamic islands with client-only rendering
+- Proxy cache key using SHA-256 hash
 
 ### Documentation
 - 21 guides covering all aspects
@@ -28,17 +31,27 @@ Changes since v0.2.2:
 - Mobile flyout menu fixes
 - PrismJS syntax highlighting with copy buttons
 - Remove duplicate h1 headings
+- Pagefind search integration with ⌘K shortcut
+- baseurl handling for search URLs
+- 15 prestruct-specific guides added
+- 4 more guides: Edge Functions, Design Systems, CI/CD, Multi-site
+- 3 more guides: Proxy, PWA, Images
+- 3 more guides: i18n, Analytics & Monitoring, Security
+- 4 more guides: Advanced Islands, Testing, Structured Data, Build Optimization
 
 ### Layout
 - Light mode with toggle switch
 - Dynamic nav from config
 - Mobile burger menu improvements
 - Theme toggle and breakpoint fixes
+- Mobile nav folder items default hidden
+- Backdrop-filter only on dark mode header
 
 ### Infrastructure
 - GitHub Pages baseurl config
 - Jekyll layout fixes
 - 404 noindex handling
+- Artifact deploy instead of branch deploy (peaceiris bug)
 
 ## v0.2.2 (Stable)
 
