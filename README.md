@@ -10,7 +10,9 @@ deployments.
 This is **build-time prerender**, not edge SSR. Every route is rendered once at deploy
 time and served as a static HTML file. CF Pages handles the rest.
 
-https://prestruct.creadev.org
+Live: https://prestruct.creadev.org
+
+Docs: https://docs.creadev.org/prestruct
 
 ---
 
